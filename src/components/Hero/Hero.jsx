@@ -3,7 +3,7 @@ import { Sparkles, Mic, Brain, ArrowRight } from "lucide-react";
 
 function Hero() {
   return (
-    <section className="relative flex items-center justify-center min-h-screen bg-black text-white overflow-hidden">
+    <section className="relative flex items-center justify-center min-h-screen pt-20 lg:pt-16 bg-black text-white overflow-hidden">
       
       {/* Modern animated background */}
       <div className="absolute inset-0">
@@ -27,14 +27,14 @@ function Hero() {
           }}
         />
         
-        {/* Animated particles */}
+        {/* Animated particles - responsive positioning */}
         {[...Array(8)].map((_, i) => (
           <motion.div
             key={i}
             className="absolute w-1 h-1 bg-indigo-400/30 rounded-full"
             style={{
-              left: `${10 + (i * 12)}%`,
-              top: `${20 + (i * 8)}%`,
+              left: `${5 + (i * 11)}%`,
+              top: `${15 + (i * 10)}%`,
             }}
             animate={{
               y: [-20, -100, -20],
@@ -50,12 +50,12 @@ function Hero() {
           />
         ))}
         
-        {/* Floating orbs with enhanced movement */}
+        {/* Floating orbs with enhanced movement - responsive sizes */}
         <motion.div
-          className="absolute top-1/4 left-1/4 w-32 h-32 bg-indigo-500/20 rounded-full blur-2xl"
+          className="absolute top-1/4 left-1/4 w-20 h-20 sm:w-32 sm:h-32 bg-indigo-500/20 rounded-full blur-2xl"
           animate={{ 
-            x: [0, 60, -30, 0], 
-            y: [0, -40, 20, 0],
+            x: [0, 40, -20, 0], 
+            y: [0, -30, 15, 0],
             scale: [1, 1.2, 0.9, 1],
             rotate: [0, 180, 360]
           }}
@@ -67,10 +67,10 @@ function Hero() {
         />
         
         <motion.div
-          className="absolute top-3/4 right-1/3 w-24 h-24 bg-cyan-400/15 rounded-full blur-xl"
+          className="absolute top-3/4 right-1/3 w-16 h-16 sm:w-24 sm:h-24 bg-cyan-400/15 rounded-full blur-xl"
           animate={{ 
-            x: [0, -50, 25, 0], 
-            y: [0, 30, -15, 0],
+            x: [0, -35, 18, 0], 
+            y: [0, 25, -12, 0],
             scale: [1, 0.8, 1.3, 1],
             rotate: [0, -120, -240, -360]
           }}
@@ -83,10 +83,10 @@ function Hero() {
         />
         
         <motion.div
-          className="absolute bottom-1/4 left-3/4 w-20 h-20 bg-purple-500/10 rounded-full blur-lg"
+          className="absolute bottom-1/4 left-3/4 w-14 h-14 sm:w-20 sm:h-20 bg-purple-500/10 rounded-full blur-lg"
           animate={{ 
-            x: [0, 40, -20, 0], 
-            y: [0, -50, 25, 0],
+            x: [0, 30, -15, 0], 
+            y: [0, -40, 20, 0],
             scale: [1, 1.4, 0.7, 1],
             rotate: [0, 90, 180, 270, 360]
           }}
@@ -98,12 +98,12 @@ function Hero() {
           }}
         />
         
-        {/* Additional smaller orbs */}
+        {/* Additional smaller orbs - responsive sizes */}
         <motion.div
-          className="absolute top-1/2 right-1/4 w-16 h-16 bg-pink-400/10 rounded-full blur-lg"
+          className="absolute top-1/2 right-1/4 w-10 h-10 sm:w-16 sm:h-16 bg-pink-400/10 rounded-full blur-lg"
           animate={{ 
-            x: [0, -30, 15, 0], 
-            y: [0, 25, -35, 0],
+            x: [0, -25, 12, 0], 
+            y: [0, 20, -28, 0],
             scale: [1, 1.1, 0.9, 1]
           }}
           transition={{ 
@@ -115,10 +115,10 @@ function Hero() {
         />
         
         <motion.div
-          className="absolute top-1/3 left-1/2 w-12 h-12 bg-yellow-400/8 rounded-full blur-md"
+          className="absolute top-1/3 left-1/2 w-8 h-8 sm:w-12 sm:h-12 bg-yellow-400/8 rounded-full blur-md"
           animate={{ 
-            x: [0, 25, -15, 0], 
-            y: [0, -20, 30, 0],
+            x: [0, 20, -12, 0], 
+            y: [0, -15, 25, 0],
             scale: [1, 0.8, 1.2, 1]
           }}
           transition={{ 
@@ -150,7 +150,7 @@ function Hero() {
       </div>
 
       {/* Content */}
-      <div className="relative z-10 max-w-5xl text-center px-6">
+      <div className="relative z-10 max-w-5xl text-center px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
@@ -161,15 +161,15 @@ function Hero() {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="inline-flex items-center gap-2 mb-6 px-4 py-2 rounded-full bg-white/5 backdrop-blur-md border border-white/10 text-gray-300 text-sm font-medium"
+            className="inline-flex items-center gap-2 mb-4 sm:mb-6 px-3 sm:px-4 py-2 rounded-full bg-white/5 backdrop-blur-md border border-white/10 text-gray-300 text-xs sm:text-sm font-medium"
           >
             <motion.div
               animate={{ rotate: 360 }}
               transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
             >
-              <Sparkles className="w-4 h-4 text-indigo-400" />
+              <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 text-indigo-400" />
             </motion.div>
-            <span>AI-Powered Interview Practice</span>
+            <span className="whitespace-nowrap">AI-Powered Interview Practice</span>
           </motion.div>
 
           {/* Main heading with staggered animation */}
@@ -177,7 +177,7 @@ function Hero() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4 }}
-            className="text-6xl sm:text-7xl lg:text-8xl font-bold leading-tight mb-6"
+            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl 2xl:text-8xl font-bold leading-tight mb-4 sm:mb-6"
           >
             <motion.span 
               className="block bg-clip-text text-transparent bg-gradient-to-r from-white via-gray-100 to-gray-300"
@@ -202,7 +202,7 @@ function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 1 }}
-            className="text-xl text-gray-400 max-w-3xl mx-auto leading-relaxed mb-10"
+            className="text-sm sm:text-base md:text-lg lg:text-xl text-gray-400 max-w-3xl mx-auto leading-relaxed mb-6 sm:mb-8 lg:mb-10 px-4"
           >
             Practice real-time interviews with an AI that asks you smart questions, 
             listens to your answers, and gives instant feedback to boost your confidence.
@@ -213,12 +213,12 @@ function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 1.2 }}
-            className="flex flex-wrap justify-center gap-4"
+            className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 px-4"
           >
             <motion.button
               whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.98 }}
-              className="group px-8 py-4 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold shadow-2xl shadow-indigo-600/30 flex items-center gap-2 transition-all duration-300 relative overflow-hidden"
+              className="group w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold shadow-2xl shadow-indigo-600/30 flex items-center justify-center gap-2 transition-all duration-300 relative overflow-hidden"
             >
               {/* Button shine effect */}
               <motion.div
@@ -227,23 +227,23 @@ function Hero() {
                 whileHover={{ x: "100%" }}
                 transition={{ duration: 0.6 }}
               />
-              <Mic className="w-5 h-5 relative z-10" />
+              <Mic className="w-4 h-4 sm:w-5 sm:h-5 relative z-10" />
               <span className="relative z-10">Start Interview</span>
               <motion.div
                 className="relative z-10"
                 animate={{ x: [0, 3, 0] }}
                 transition={{ duration: 2, repeat: Infinity }}
               >
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
               </motion.div>
             </motion.button>
             
             <motion.button
               whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.98 }}
-              className="px-8 py-4 rounded-2xl bg-white/5 hover:bg-white/10 text-white font-semibold backdrop-blur-md border border-white/10 flex items-center gap-2 transition-all duration-300"
+              className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 rounded-2xl bg-white/5 hover:bg-white/10 text-white font-semibold backdrop-blur-md border border-white/10 flex items-center justify-center gap-2 transition-all duration-300"
             >
-              <Brain className="w-5 h-5" />
+              <Brain className="w-4 h-4 sm:w-5 sm:h-5" />
               Learn More
             </motion.button>
           </motion.div>
@@ -253,17 +253,17 @@ function Hero() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 1, delay: 1.5 }}
-            className="mt-16 flex justify-center"
+            className="mt-8 sm:mt-12 lg:mt-16 flex justify-center"
           >
             <motion.div
               animate={{ y: [0, -8, 0] }}
               transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-              className="w-6 h-10 rounded-full border-2 border-white/20 flex justify-center"
+              className="w-5 h-8 sm:w-6 sm:h-10 rounded-full border-2 border-white/20 flex justify-center"
             >
               <motion.div
                 animate={{ y: [0, 12, 0], opacity: [1, 0, 1] }}
                 transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                className="w-1 h-3 bg-white/40 rounded-full mt-2"
+                className="w-0.5 h-2 sm:w-1 sm:h-3 bg-white/40 rounded-full mt-1 sm:mt-2"
               />
             </motion.div>
           </motion.div>
