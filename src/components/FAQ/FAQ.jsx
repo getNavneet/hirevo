@@ -1,3 +1,4 @@
+import {motion} from 'framer-motion';
 const FAQ = () => {
   const faqs = [
     { q: "Is it free to use?", a: "Yes, you can start for free with limited interviews." },

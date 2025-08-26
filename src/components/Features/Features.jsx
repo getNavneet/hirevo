@@ -1,3 +1,5 @@
+import { motion } from "framer-motion";
+
 const Features = () => {
   const features = [
     { title: "Real-time Q&A", desc: "AI asks you realistic interview questions." },

@@ -1,3 +1,7 @@
+import { Button } from "@/components/ui/button"; 
+import { Card, CardContent } from "@/components/ui/card";
+import { CheckCircle } from "lucide-react";
+
 const Pricing = () => (
   <section className="py-20 bg-gray-100">
     <h2 className="text-3xl font-bold text-center mb-12">Pricing</h2>

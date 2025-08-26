@@ -1,3 +1,5 @@
+import { motion } from "framer-motion";
+
 const HowItWorks = () => {
   const steps = [
     { step: "1", title: "Upload Resume / Select Topic" },
