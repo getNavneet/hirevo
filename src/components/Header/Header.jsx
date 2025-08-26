@@ -15,14 +15,14 @@ export default function Header() {
   return (
     <motion.header
       className={`fixed top-0 left-0 w-full flex justify-between items-center px-6 md:px-10 py-4 md:py-6 z-50 transition-all duration-500
-        ${scrolled ? "bg-white/70 backdrop-blur-md shadow-md" : "bg-transparent"}`}
+        ${scrolled ? "bg-white/10 backdrop-blur-3xl shadow-md" : "bg-transparent"}`}
       initial={{ y: -60, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.6 }}
     >
       {/* Logo */}
       <h1 className="text-xl md:text-2xl font-extrabold bg-gradient-to-r from-indigo-500 to-purple-600 bg-clip-text text-transparent">
-        AI Interview
+        HireVo
       </h1>
 
       {/* Desktop Navigation */}
