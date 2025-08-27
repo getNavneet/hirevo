@@ -1,12 +1,9 @@
-import LandingPage from './pages/LandingPage';
-import Hero from './components/Hero/Hero';
-import Header from './components/Header/Header';
+import React from 'react';
+
 function App() {
   return (
     <div>
-      <LandingPage/>
-      {/* <Header/>
-      <Hero/> */}
+      
     </div>
   );
 }

@@ -1,11 +1,9 @@
-import { useInterviewStore } from "./store/interview.store"
-import CategoryCard from "./components/CategoryCard"
-import SubcategorySelector from "./components/SubcategorySelector"
-import LevelSelector from "./components/LevelSelector"
-import ResumeUploader from "./components/ResumeUploader"
-import InterviewRoom from "./components/InterviewRoom"
-import Header from "../components/Header/Headersimple"
-import Footer from "../components/Footer/Footer"
+import { useInterviewStore } from "../store/interview.store"
+import CategoryCard from "../components/CategoryCard"
+import SubcategorySelector from "../components/SubcategorySelector"
+import LevelSelector from "../components/LevelSelector"
+import ResumeUploader from "../components/ResumeUploader"
+import InterviewRoom from "../components/InterviewRoom"
 
 const categories = [
   {
@@ -38,7 +36,7 @@ const categories = [
   },
 ]
 
-function App() {
+function GetStatredPage() {
   const {
     currentStep,
     selectedCategory,
@@ -98,8 +96,6 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <Header/>
 
       {/* Main Content */}
       <main className="max-w-6xl mx-auto px-4 py-8">
@@ -139,10 +135,8 @@ function App() {
         )}
       </main>
 
-      {/* Footer */}
-     <Footer/>
     </div>
   )
 }
 
-export default App
+export default GetStatredPage;
