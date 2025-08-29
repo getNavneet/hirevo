@@ -1,3 +1,6 @@
+import react, {useState} from 'react';
+import { Button } from "@/components/ui/button";
+import { useInterviewStore } from "../store/interview.store";
 const levelsForProgrammingAndCore = [
   {
     id: "beginner",
@@ -23,12 +26,13 @@ const levelsForProgrammingAndCore = [
     color: "bg-red-50 border-red-200 hover:border-red-300",
     badge: "bg-red-100 text-red-800",
   },
-]
+];
 const levelsForResume = [
   {
     id: "beginner",
     name: "Beginner",
-    description: "Simple walkthrough of your resume and basic project insights.",
+    description:
+      "Simple walkthrough of your resume and basic project insights.",
     duration: "10–15 minutes",
     color: "bg-green-50 border-green-200 hover:border-green-300",
     badge: "bg-green-100 text-green-800",
@@ -36,7 +40,8 @@ const levelsForResume = [
   {
     id: "intermediate",
     name: "Intermediate",
-    description: "Detailed questions about achievements, roles, and key skills.",
+    description:
+      "Detailed questions about achievements, roles, and key skills.",
     duration: "20–25 minutes",
     color: "bg-yellow-50 border-yellow-200 hover:border-yellow-300",
     badge: "bg-yellow-100 text-yellow-800",
@@ -44,12 +49,13 @@ const levelsForResume = [
   {
     id: "advanced",
     name: "Advanced",
-    description: "In-depth discussion on career decisions, leadership, and impact.",
+    description:
+      "In-depth discussion on career decisions, leadership, and impact.",
     duration: "30–40 minutes",
     color: "bg-red-50 border-red-200 hover:border-red-300",
     badge: "bg-red-100 text-red-800",
   },
-]
+];
 
 const levelsForPersonal = [
   {
@@ -71,28 +77,59 @@ const levelsForPersonal = [
   {
     id: "advanced",
     name: "Advanced",
-    description: "Tests emotional intelligence, conflict handling, and leadership style.",
+    description:
+      "Tests emotional intelligence, conflict handling, and leadership style.",
     duration: "30–40 minutes",
     color: "bg-red-50 border-red-200 hover:border-red-300",
     badge: "bg-red-100 text-red-800",
   },
-]
+];
 
 const getLevelsByCategory = (category) => {
   switch (category) {
-    case 'programming':
-    case 'cs':
+    case "programming":
+    case "cs":
       return levelsForProgrammingAndCore;
-    case 'resume':
+    case "resume":
       return levelsForResume;
-    case 'personal':
+    case "personal":
       return levelsForPersonal;
     default:
-      return []; 
+      return [];
   }
 };
 export default function LevelSelector({ onSelect, onBack, category }) {
+    const [loading, setLoading] = useState(false);
+
   const levels = getLevelsByCategory(category);
+   const {
+      uploadedResume,
+      selectedCategory,
+      selectedSubcategory,
+      selectedLevel,
+    } = useInterviewStore()
+  
+const handleConnect = async () => {
+    try {
+      setLoading(true);
+
+      //payload data from zustand
+      const payload = {
+        resume: uploadedResume,
+        category: selectedCategory,
+        subcategory: selectedSubcategory,
+        level: selectedLevel,
+      };
+
+      const res = await api.post("/startInterview", payload);
+
+      // Navigate user to the interview room
+      window.location.href = `/room/${res.data.roomId}`;
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   return (
     <div className="space-y-8">
@@ -101,16 +138,30 @@ export default function LevelSelector({ onSelect, onBack, category }) {
           onClick={onBack}
           className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15 19l-7-7 7-7"
+            />
           </svg>
           Back
         </button>
       </div>
 
       <div className="text-center space-y-4">
-        <h2 className="text-3xl font-bold text-gray-900">Select Difficulty Level</h2>
-        <p className="text-lg text-gray-600">Choose the level that matches your current skill level</p>
+        <h2 className="text-3xl font-bold text-gray-900">
+          Select Difficulty Level
+        </h2>
+        <p className="text-lg text-gray-600">
+          Choose the level that matches your current skill level
+        </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
@@ -122,14 +173,30 @@ export default function LevelSelector({ onSelect, onBack, category }) {
           >
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-xl font-semibold text-gray-900">{level.name}</h3>
-                <span className={`${level.badge} px-2 py-1 rounded-full text-xs font-medium`}>{level.duration}</span>
+                <h3 className="text-xl font-semibold text-gray-900">
+                  {level.name}
+                </h3>
+                <span
+                  className={`${level.badge} px-2 py-1 rounded-full text-xs font-medium`}
+                >
+                  {level.duration}
+                </span>
               </div>
               <p className="text-gray-600">{level.description}</p>
             </div>
           </button>
         ))}
       </div>
+     <div className="flex items-center justify-center">
+      <Button
+        variant="outline"
+        onClick={handleConnect}
+        disabled={loading}
+        className="px-6 py-3 text-lg font-semibold rounded-2xl shadow-md hover:shadow-lg transition"
+      >
+        {loading ? "Connecting..." : "Connect Call"}
+      </Button>
     </div>
-  )
+    </div>
+  );
 }
