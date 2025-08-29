@@ -1,6 +1,4 @@
-"use client"
-
-const levels = [
+const levelsForProgrammingAndCore = [
   {
     id: "beginner",
     name: "Beginner",
@@ -26,8 +24,76 @@ const levels = [
     badge: "bg-red-100 text-red-800",
   },
 ]
+const levelsForResume = [
+  {
+    id: "beginner",
+    name: "Beginner",
+    description: "Simple walkthrough of your resume and basic project insights.",
+    duration: "10–15 minutes",
+    color: "bg-green-50 border-green-200 hover:border-green-300",
+    badge: "bg-green-100 text-green-800",
+  },
+  {
+    id: "intermediate",
+    name: "Intermediate",
+    description: "Detailed questions about achievements, roles, and key skills.",
+    duration: "20–25 minutes",
+    color: "bg-yellow-50 border-yellow-200 hover:border-yellow-300",
+    badge: "bg-yellow-100 text-yellow-800",
+  },
+  {
+    id: "advanced",
+    name: "Advanced",
+    description: "In-depth discussion on career decisions, leadership, and impact.",
+    duration: "30–40 minutes",
+    color: "bg-red-50 border-red-200 hover:border-red-300",
+    badge: "bg-red-100 text-red-800",
+  },
+]
 
-export default function LevelSelector({ onSelect, onBack }) {
+const levelsForPersonal = [
+  {
+    id: "beginner",
+    name: "Beginner",
+    description: "Covers basic self-introduction, strengths, and background.",
+    duration: "10–15 minutes",
+    color: "bg-green-50 border-green-200 hover:border-green-300",
+    badge: "bg-green-100 text-green-800",
+  },
+  {
+    id: "intermediate",
+    name: "Intermediate",
+    description: "Behavioral scenarios, motivation, and real-world challenges.",
+    duration: "20–25 minutes",
+    color: "bg-yellow-50 border-yellow-200 hover:border-yellow-300",
+    badge: "bg-yellow-100 text-yellow-800",
+  },
+  {
+    id: "advanced",
+    name: "Advanced",
+    description: "Tests emotional intelligence, conflict handling, and leadership style.",
+    duration: "30–40 minutes",
+    color: "bg-red-50 border-red-200 hover:border-red-300",
+    badge: "bg-red-100 text-red-800",
+  },
+]
+
+const getLevelsByCategory = (category) => {
+  switch (category) {
+    case 'programming':
+    case 'cs':
+      return levelsForProgrammingAndCore;
+    case 'resume':
+      return levelsForResume;
+    case 'personal':
+      return levelsForPersonal;
+    default:
+      return []; 
+  }
+};
+export default function LevelSelector({ onSelect, onBack, category }) {
+  const levels = getLevelsByCategory(category);
+
   return (
     <div className="space-y-8">
       <div className="flex items-center gap-4">

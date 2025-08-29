@@ -4,13 +4,35 @@ import { Menu, X } from "lucide-react";
 
 export default function Header() {
   const [scrolled, setScrolled] = useState(false);
+  const [isDarkPage, setIsDarkPage] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
-  useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 50);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+  // useEffect(() => {
+  //   const handleScroll = () => setScrolled(window.scrollY > 50);
+  //   window.addEventListener("scroll", handleScroll);
+  //   return () => window.removeEventListener("scroll", handleScroll);
+  // }, []);
+
+   useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 50);  //true if scroll is more than 50
+    };
+
+    // Detect if current page has dark background
+    const checkPageBackground = () => {
+      const body = document.body;
+      const computedStyle = window.getComputedStyle(body);
+      const bgColor = computedStyle.backgroundColor;
+      // Add logic to determine if page is dark
+      setIsDarkPage(window.location.pathname === '/');
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    checkPageBackground();
+
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+  
 
   return (
     <motion.header

@@ -36,7 +36,7 @@ const categories = [
   },
 ]
 
-function GetStatredPage() {
+function GetStartedPage() {
   const {
     currentStep,
     selectedCategory,
@@ -52,14 +52,17 @@ function GetStatredPage() {
 
   const handleCategorySelect = (categoryId) => {
     setCategory(categoryId)
+   
 
     if (categoryId === "personal") {
-      startInterview()
+     setStep("level")
     } else if (categoryId === "resume") {
       setStep("upload")
     } else {
       setStep("subcategory")
     }
+
+    //  setStep("subcategory")
   }
 
   const handleSubcategorySelect = (subcategory) => {
@@ -74,36 +77,41 @@ function GetStatredPage() {
 
   const handleResumeUpload = (file) => {
     setResume(file)
+    setStep("level")
   }
 
-  const handleStartResumeInterview = () => {
-    startInterview()
-  }
+  // const handleStartResumeInterview = () => {
+  //   startInterview()
+  // }
 
   const handleBack = () => {
     if (currentStep === "subcategory") {
       setStep("category")
     } else if (currentStep === "level") {
-      setStep("subcategory")
+      if(setCategory == 'programming' || setCategory == 'cs'){
+        setStep("subcategory")
+      }
+      else{
+        setStep("category")
+      }
     } else if (currentStep === "upload") {
       setStep("category")
     }
   }
-
+   //this is triggring to open interviewroom
   if (currentStep === "interview") {
     return <InterviewRoom />
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
-
-      {/* Main Content */}
-      <main className="max-w-6xl mx-auto px-4 py-8">
+      {/* Main Content with header spacing */}
+      <main className="max-w-6xl mx-auto px-4 pt-20 lg:pt-24 pb-8">
         {currentStep === "category" && (
           <div className="space-y-8">
             <div className="text-center space-y-4">
-              <h2 className="text-4xl font-bold text-gray-900">Choose Your Interview Type</h2>
-              <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900">Choose Your Interview Type</h2>
+              <p className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto px-4">
                 Select the type of interview you'd like to practice. Each category is designed to help you improve
                 specific skills.
               </p>
@@ -128,15 +136,16 @@ function GetStatredPage() {
           <SubcategorySelector category={selectedCategory} onSelect={handleSubcategorySelect} onBack={handleBack} />
         )}
 
-        {currentStep === "level" && <LevelSelector onSelect={handleLevelSelect} onBack={handleBack} />}
+        {currentStep === "level" && <LevelSelector category={selectedCategory} onSelect={handleLevelSelect} onBack={handleBack} />}
 
         {currentStep === "upload" && (
-          <ResumeUploader onUpload={handleResumeUpload} onBack={handleBack} onStart={handleStartResumeInterview} />
+          <ResumeUploader onUpload={handleResumeUpload} onBack={handleBack} 
+          // onStart={handleStartResumeInterview} 
+          />
         )}
       </main>
-
     </div>
   )
 }
 
-export default GetStatredPage;
+export default GetStartedPage;
