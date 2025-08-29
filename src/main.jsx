@@ -12,7 +12,7 @@ import LandingPage from "./pages/LandingPage";
 import GetStatredPage from "./pages/GetStartedPage";
 import AboutPage from "./pages/AboutPage";
 import FeaturesPage from "./pages/FeaturesPage";
-
+import InterviewRoomPage from "./pages/InterviewRoomPage.jsx";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -21,6 +21,7 @@ const router = createBrowserRouter(
       <Route path="about" element={<AboutPage />} />
       <Route path="getStarted" element={<GetStatredPage />} />
       <Route path="features" element={<FeaturesPage />} />
+      <Route path="interviewRoom" element={<InterviewRoomPage />} />
       
     </Route>
   )
