@@ -1,6 +1,7 @@
 import react, {useState} from 'react';
 import { Button } from "@/components/ui/button";
 import { useInterviewStore } from "../store/interview.store";
+import api from '../lib/axios';
 const levelsForProgrammingAndCore = [
   {
     id: "beginner",
@@ -120,6 +121,7 @@ const handleConnect = async () => {
         subcategory: selectedSubcategory,
         level: selectedLevel,
       };
+      console.log(payload);
 
       const res = await api.post("/startInterview", payload);
 
