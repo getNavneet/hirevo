@@ -109,28 +109,39 @@ export default function LevelSelector({ onSelect, onBack, category }) {
       selectedSubcategory,
       selectedLevel,
     } = useInterviewStore()
-  
 const handleConnect = async () => {
-    try {
-      setLoading(true);
+  try {
+    setLoading(true);
 
-      //payload data from zustand
-      const payload = {
-        resume: uploadedResume,
-        category: selectedCategory,
-        subcategory: selectedSubcategory,
-        level: selectedLevel,
-      };
-      console.log(payload);
+    // prepare form-data
+    const formData = new FormData();
+    formData.append("category", selectedCategory);
+    formData.append("subcategory", selectedSubcategory);
+    formData.append("level", selectedLevel);
 
-      const res = await api.post("/startInterview", payload);
-
-      // Navigate user to the interview room
-      window.location.href = `/room/${res.data.roomId}`;
-    } finally {
-      setLoading(false);
+    if (uploadedResume) {
+      formData.append("resume", uploadedResume); // must be a File object
     }
-  };
+
+    console.log("FormData ready...");
+
+    // send request
+    const res = await api.post("/user/interview/start", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    console.log("Interview started:", res.data);
+
+    // Navigate user to the interview room
+    window.location.href = `/interviewRoom`;
+  } catch (error) {
+    console.error("Error starting interview:", error);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
 
   return (
