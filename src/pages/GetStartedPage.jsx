@@ -72,7 +72,6 @@ function GetStartedPage() {
 
   const handleLevelSelect = (level) => {
     setLevel(level)
-    startInterview()
   }
 
   const handleResumeUpload = (file) => {
@@ -98,11 +97,7 @@ function GetStartedPage() {
       setStep("category")
     }
   }
-   //this is triggring to open interviewroom
-  if (currentStep === "interview") {
-    return <InterviewRoom />
-  }
-
+  
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Main Content with header spacing */}
