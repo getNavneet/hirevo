@@ -1,4 +1,5 @@
 import react, {useState} from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { useInterviewStore } from "../store/interview.store";
 import api from '../lib/axios';
@@ -101,6 +102,7 @@ const getLevelsByCategory = (category) => {
 };
 export default function LevelSelector({ onSelect, onBack, category }) {
     const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const levels = getLevelsByCategory(category);
    const {
@@ -134,7 +136,7 @@ const handleConnect = async () => {
     console.log("Interview started:", res.data);
 
     // Navigate user to the interview room
-    window.location.href = `/interviewRoom`;
+    navigate('/interviewRoom');
   } catch (error) {
     console.error("Error starting interview:", error);
   } finally {

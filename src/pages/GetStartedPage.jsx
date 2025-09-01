@@ -3,7 +3,6 @@ import CategoryCard from "../components/CategoryCard"
 import SubcategorySelector from "../components/SubcategorySelector"
 import LevelSelector from "../components/LevelSelector"
 import ResumeUploader from "../components/ResumeUploader"
-import InterviewRoom from "../components/InterviewRoom"
 
 const categories = [
   {
@@ -62,7 +61,6 @@ function GetStartedPage() {
       setStep("subcategory")
     }
 
-    //  setStep("subcategory")
   }
 
   const handleSubcategorySelect = (subcategory) => {
@@ -72,6 +70,7 @@ function GetStartedPage() {
 
   const handleLevelSelect = (level) => {
     setLevel(level)
+    setStep("interview")  //from this we will render interviewRoom if step is not interview dont open interviewRoom as level selection is always a last step
   }
 
   const handleResumeUpload = (file) => {
@@ -135,7 +134,6 @@ function GetStartedPage() {
 
         {currentStep === "upload" && (
           <ResumeUploader onUpload={handleResumeUpload} onBack={handleBack} 
-          // onStart={handleStartResumeInterview} 
           />
         )}
       </main>

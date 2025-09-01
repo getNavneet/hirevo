@@ -1,8 +1,12 @@
 import InterviewRoom from "../components/InterviewRoom/InterviewRoom";
+import { useInterviewStore } from "../store/interview.store";
 function InterviewRoomPage() {
+const { selectedLevel } = useInterviewStore();
+
   return (
     <div>
-      <InterviewRoom/>
+      {selectedLevel === "interview" && <InterviewRoom/>}
+     
     </div>
   );
 }
