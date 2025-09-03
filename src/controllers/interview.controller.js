@@ -1,48 +1,37 @@
+import crypto from 'crypto';
+import { uploadToS3 } from '../utils/uploadToS3';
+import InterviewSession from '../models/interviewsession.model.js';
+function getSessionId() {
+  return crypto.randomBytes(16).toString('hex');
+}
+
 const startInterview = async (req, res) => {
   try {
     const { category, subcategory, level } = req.body;
-
+    const sessionId = getSessionId();
     // Check if resume file is uploaded
     let resumeFile = null;
+    let resumeUrl = "";
     if (req.files && req.files.resume && req.files.resume[0]) {
       resumeFile = req.files.resume[0]; // contains buffer, mimetype, etc.
+      //here upload to aws
+      resumeUrl= await uploadToS3(resumeFile.path ,"Resumes");
     }
 
 
     // Example payload you might send to AI/interview service
     const payload = {
+      sessionId,
       category,
       subcategory, 
       level,
-      resume: resumeFile ? resumeFile.originalname : null, // or save file path in DB
+      resume: resumeUrl || "", // or save file path in DB
     };
 
-     // check for category type
-     if (category === "core" || category === "programming" ) {
-      console.log("Core category selected");
-      const payload = {
-      category,
-      subcategory, 
-      level
-    };
-    } else if (category === "personal") {
-      console.log("personal category selected");
-       const payload = {
-      category,
-      level
-    };
-    } else if(category === "resume"){
-      console.log("Invalid category selected");
-      const payload = {
-      category,
-      level,
-      resume: resumeFile ? resumeFile.originalname : null, // or save file path in DB
-    };
-    }
-    else {
-      console.log("Invalid category selected");
-    }
+     const newSession=await InterviewSession.create(payload);
 
+
+   
 
     //TODO fullfill this request and here call a function which will handle the interview process through the socket connection like sending and receiving messages.
       
@@ -67,7 +56,7 @@ const startInterview = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "Interview initialized successfully",
-      data: payload,
+      data: newSession,
     });
   } catch (error) {
     console.error("Error starting interview:", error);
