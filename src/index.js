@@ -13,6 +13,8 @@ connectDB()
     const server = createServer(app);
 
     // init socket
+    //Your backend is always listening for socket connections.
+    // The frontend (React app) can connect at any time via io("http://localhost:8000") and the backend will accept that connection.
     initSocket(server);
 
     server.listen(PORT, () => {

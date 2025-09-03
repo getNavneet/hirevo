@@ -4,7 +4,7 @@ export const initSocket = async(server) => {
   const { Server } = await import("socket.io"); // dynamic import since top-level used elsewhere
   io = new Server(server, {
     cors: {
-      origin: "http://localhost:5173", // frontend URL
+      origin: "*", // frontend URL
       methods: ["GET", "POST"],
       credentials: true,
     },

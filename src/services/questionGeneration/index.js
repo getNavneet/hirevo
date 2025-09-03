@@ -1,4 +1,3 @@
-import OpenAI from "openai";
 import { generateInterviewQuestion } from "./askLLm.js";
 
 
