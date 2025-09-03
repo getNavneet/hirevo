@@ -13,7 +13,7 @@ const s3Client = new S3Client({
   },
 });
 
-export const uploadToS3 = async (localFilePath, folderName) => {
+ const uploadToS3 = async (localFilePath, folderName) => {
   try {
     if (!localFilePath || !folderName) {
       throw new Error("File path and folder name are required.");
@@ -61,4 +61,4 @@ export const uploadToS3 = async (localFilePath, folderName) => {
 
 
 
-export { uploadToS3 };
+export { uploadToS3 }

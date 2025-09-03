@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import { uploadToS3 } from '../utils/uploadToS3';
+import { uploadToS3 } from '../utils/uploadToS3.js';
 import InterviewSession from '../models/interviewsession.model.js';
 function getSessionId() {
   return crypto.randomBytes(16).toString('hex');
@@ -31,18 +31,11 @@ const startInterview = async (req, res) => {
      const newSession=await InterviewSession.create(payload);
 
 
-   
 
     //TODO fullfill this request and here call a function which will handle the interview process through the socket connection like sending and receiving messages.
       
 
-
-
-
-
     //TODO indenfidy user if logged in and save this data in there database
-
-
 
     // Handle based on resume presence
     // if (resumeFile) {
