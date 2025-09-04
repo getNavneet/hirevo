@@ -1,11 +1,22 @@
 import { SpeechClient } from '@google-cloud/speech';
 import stream from 'stream';
+
 const speechClient = new SpeechClient();
 
-function createSpeechStream(socket, onFinalTranscript) {
+function createSpeechStream(callbacks = {}) {
   let recognizeStream = null;
   let audioInput = null;
   let transcribed = "";
+  let isStreamActive = false;
+  
+  // Destructure callbacks with defaults
+  const {
+    onPartialTranscript = () => {},
+    onFinalTranscript = () => {},
+    onError = () => {},
+    onStreamStart = () => {},
+    onStreamEnd = () => {},
+  } = callbacks;
 
   const requestConfig = {
     config: {
@@ -15,63 +26,142 @@ function createSpeechStream(socket, onFinalTranscript) {
       model: 'latest_long',
       enableAutomaticPunctuation: true,
     },
-    interimResults: false,
+    interimResults: true, // Enable for partial transcripts
   };
 
   function startStream() {
-    console.log(`[${socket.id}] 🎙️ Starting speech recognition stream`);
-    audioInput = new stream.PassThrough();
+    if (isStreamActive) {
+      console.warn('🚫 Speech stream already active');
+      return false;
+    }
 
-    recognizeStream = speechClient
-      .streamingRecognize(requestConfig)
-      .on('error', (err) => {
-        console.error('Google Speech error:', err);
-        socket.emit('transcription-error', 'Google STT error occurred');
-      })
-      .on('data', (data) => {
-        const transcript = data.results[0]?.alternatives[0]?.transcript;
-        const isFinal = data.results[0]?.isFinal;
+    console.log('🎙️ Starting speech recognition stream');
+    
+    try {
+      isStreamActive = true;
+      transcribed = "";
+      audioInput = new stream.PassThrough();
+      
+      onStreamStart();
 
-        if (transcript) {
-          console.log(`[${socket.id}] 📝 Transcript: ${transcript}`);
-          transcribed += transcript;
+      recognizeStream = speechClient
+        .streamingRecognize(requestConfig)
+        .on('error', (err) => {
+          console.error('Google Speech error:', err);
+          isStreamActive = false;
+          onError(err, 'Google STT error occurred');
+          endStream();
+        })
+        .on('data', (data) => {
+          try {
+            if (data.results && data.results.length > 0) {
+              const result = data.results[0];
+              const transcript = result.alternatives[0]?.transcript;
+              const isFinal = result.isFinal;
 
-          if (isFinal) {
-            socket.emit('transcription', transcript);
+              if (transcript) {
+                console.log(`📝 ${isFinal ? 'Final' : 'Partial'} Transcript: ${transcript}`);
 
-            // ✅ pass to LLM or another handler
-            if (onFinalTranscript) {
-              onFinalTranscript(transcript, socket);
+                if (isFinal) {
+                  transcribed += transcript + " ";
+                  
+                  // Send individual final transcript
+                  onFinalTranscript(transcript);
+                } else {
+                  // Send partial transcript for real-time feedback
+                  onPartialTranscript(transcript);
+                }
+              }
             }
-          } else {
-            socket.emit('partial-transcription', transcript);
+          } catch (dataErr) {
+            console.error('Error processing speech data:', dataErr);
+            onError(dataErr, 'Error processing speech data');
           }
-        }
-      });
+        })
+        .on('end', () => {
+          console.log('🏁 Speech recognition stream ended');
+          isStreamActive = false;
+          onStreamEnd(transcribed.trim());
+        })
+        .on('close', () => {
+          console.log('🔒 Speech recognition stream closed');
+          isStreamActive = false;
+        });
 
-    // pipe audio to recognize stream
-    audioInput.pipe(recognizeStream);
-    socket.audioInput = audioInput;
+      // Pipe audio to recognize stream
+      audioInput.pipe(recognizeStream);
+      return true;
+
+    } catch (err) {
+      console.error('Error starting speech stream:', err);
+      isStreamActive = false;
+      onError(err, 'Failed to start speech recognition');
+      return false;
+    }
   }
 
   function writeAudio(chunk) {
-    if (socket.audioInput) {
-      socket.audioInput.write(chunk);
+    try {
+      if (audioInput && isStreamActive) {
+        audioInput.write(chunk);
+        return true;
+      } else {
+        console.warn('Attempted to write audio but stream is not active');
+        return false;
+      }
+    } catch (err) {
+      console.error('Error writing audio chunk:', err);
+      onError(err, 'Error processing audio chunk');
+      return false;
     }
   }
 
   function endStream() {
-    console.log(`[${socket.id}] 🛑 Ending speech stream`);
+    console.log('🛑 Ending speech stream');
+    
+    const finalTranscript = transcribed.trim();
+    
+    // Cleanup
+    isStreamActive = false;
+
+    try {
+      if (audioInput) {
+        audioInput.end();
+        audioInput = null;
+      }
+    } catch (err) {
+      console.error('Error ending audio input:', err);
+    }
+
+    try {
+      if (recognizeStream) {
+        recognizeStream.removeAllListeners();
+        recognizeStream.end();
+        recognizeStream = null;
+      }
+    } catch (err) {
+      console.error('Error ending recognize stream:', err);
+    }
+
     transcribed = "";
-
-    if (socket.audioInput) socket.audioInput.end();
-    if (recognizeStream) recognizeStream.end();
-
-    socket.audioInput = null;
-    recognizeStream = null;
+    onStreamEnd(finalTranscript);
   }
 
-  return { startStream, writeAudio, endStream };
+  function getAccumulatedTranscript() {
+    return transcribed.trim();
+  }
+
+  function isActive() {
+    return isStreamActive;
+  }
+
+  return { 
+    startStream, 
+    writeAudio, 
+    endStream, 
+    getAccumulatedTranscript,
+    isActive 
+  };
 }
 
 export { createSpeechStream };
