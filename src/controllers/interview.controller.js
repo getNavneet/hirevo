@@ -38,7 +38,10 @@ const startInterview = async (req, res) => {
       resume: resumeUrl || "", // or save file path in DB
     };
 
-     const newSession=await InterviewSession.create(payload);
+     const newSession =await InterviewSession.create(payload);
+     const createdSession=await InterviewSession.findById(newSession._id).select("-resumeText");
+
+
 
 
 
@@ -59,7 +62,7 @@ const startInterview = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "Interview initialized successfully",
-      data: newSession,
+      data: createdSession,
     });
   } catch (error) {
     console.error("Error starting interview:", error);
