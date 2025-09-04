@@ -23,6 +23,7 @@ export const initSocket = async(server) => {
 
 export const getIo = () => {
   if (!io) {
+    console.log("Socket.io not initialized!");
     throw new Error("Socket.io not initialized!");
   }
   return io;
