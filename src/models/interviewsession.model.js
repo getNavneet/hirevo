@@ -5,7 +5,7 @@ const interviewSessionSchema = new mongoose.Schema({
     type: String,
     required: true,
     unique: true,
-    index: true, // 🔥 Adds an index for fast lookups
+    index: true, // for fast retrival
   },
   category: {
     type: String,
@@ -21,6 +21,10 @@ const interviewSessionSchema = new mongoose.Schema({
     required: true,
   },
   resume: {
+    type: String,
+    default: null,
+  },
+  resumeText: {
     type: String,
     default: null,
   },

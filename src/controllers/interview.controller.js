@@ -1,6 +1,9 @@
 import crypto from 'crypto';
 import { uploadToS3 } from '../utils/uploadToS3.js';
 import InterviewSession from '../models/interviewsession.model.js';
+import { extractResumeText } from '../utils/resumeTextExtractor.js';
+
+
 function getSessionId() {
   return crypto.randomBytes(16).toString('hex');
 }
@@ -12,9 +15,15 @@ const startInterview = async (req, res) => {
     // Check if resume file is uploaded
     let resumeFile = null;
     let resumeUrl = "";
+    let resumeText = "";
     if (req.files && req.files.resume && req.files.resume[0]) {
       resumeFile = req.files.resume[0]; // contains buffer, mimetype, etc.
+     
+      resumeText = await extractResumeText(resumeFile.path, resumeFile.mimetype);
+    
+  
       //here upload to aws
+
       resumeUrl= await uploadToS3(resumeFile.path ,"Resumes");
     }
 
@@ -25,6 +34,7 @@ const startInterview = async (req, res) => {
       category,
       subcategory, 
       level,
+      resumeText,
       resume: resumeUrl || "", // or save file path in DB
     };
 
