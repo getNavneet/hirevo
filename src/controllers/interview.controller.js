@@ -50,13 +50,7 @@ const startInterview = async (req, res) => {
 
     //TODO indenfidy user if logged in and save this data in there database
 
-    // Handle based on resume presence
-    // if (resumeFile) {
-    //   console.log("📄 Resume uploaded:", resumeFile.originalname);
-    //   // Save to DB / cloud storage if needed
-    // } else {
-    //   console.log("ℹ️ No resume uploaded. Personal/General interview mode.");
-    // }
+
 
     // Send success response
     res.status(200).json({
