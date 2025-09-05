@@ -1,5 +1,4 @@
 //similar to transcription.claude.js
-import InterviewSession from "../models/interviewsession.model.js";
 import { createSpeechStream } from "../services/sst/speechHandlerGoogle.js";
 import { 
   initializeInterviewFromDB, 
@@ -103,6 +102,7 @@ export async function InterviewSocket(server) {
         
         // Create speech stream with callback functions
         speechStream = createSpeechStream({
+          //speechStream is a varaible and createSpeechStream is a high order function that takes function as a argument
           // Real-time partial transcripts
           onPartialTranscript: (partialText) => {
             // console.log(`[${socket.id}] 📝 Partial transcript: ${partialText}`);
@@ -111,6 +111,7 @@ export async function InterviewSocket(server) {
           
           // Individual final transcripts (per speech segment)
           onFinalTranscript: async (finalText) => {
+            //here is the flaw/erroe in code When the stream detects a pause, it triggers the onFinalTranscript function. This is the most crucial part of our code workflow, as it is the moment when a user's complete answer is captured and passed to the rest of your AI logic. The processTranscript function then takes this complete thought and uses it to decide what to do next - but i dont want this because when user is taking a little pause the answer is getting generated but actually user has not finished his response its just a little pause now tell me how to handle this
             console.log(`[${socket.id}] 📝 Final segment: ${finalText}`);
             socket.emit("transcription", { text: finalText });
             

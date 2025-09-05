@@ -30,14 +30,8 @@ async function initializeInterviewFromDB(sessionId) {
     if (!dbSession) {
       throw new Error(`Session not found: ${sessionId}`);
     }
-     console.log("=====================================")
-     console.log(dbSession)
-     console.log("=====================================")
     // Normalize level
     const normalizedLevel = normalizeLevel(dbSession.level);
-    console.log("=====================================")
-    console.log(normalizedLevel)
-    console.log("=====================================")
     const levelConfig = LEVEL_CONFIG[normalizedLevel];
 
     if (!levelConfig) {
