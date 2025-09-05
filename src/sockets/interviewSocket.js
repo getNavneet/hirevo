@@ -5,7 +5,7 @@ import {
   initializeInterviewFromDB, 
   processResponseAndGenerateNext,
   addResponseToSession,
-} from "../services/questionGeneration/index.dbintegration2.js";
+} from "../services/questionGeneration/index.dbintegration.js";
 
 
 async function processTranscript(socket, finalText) {

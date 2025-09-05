@@ -2,7 +2,6 @@ import connectDB from "./config/db.config.js";
 import { app } from "./app.js";
 import dotenv from "dotenv";
 import { createServer } from "http";
-import { initSocket } from "./socket.js";
 import { InterviewSocket } from "./sockets/interviewSocket.js";
 
 dotenv.config();
