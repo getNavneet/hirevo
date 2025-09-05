@@ -1,4 +1,3 @@
-//similar to transcription.claude.js
 import { createSpeechStream } from "../services/sst/speechHandlerGoogle.js";
 import { 
   initializeInterviewFromDB, 
@@ -102,21 +101,17 @@ export async function InterviewSocket(server) {
         
         // Create speech stream with callback functions
         speechStream = createSpeechStream({
-          //speechStream is a varaible and createSpeechStream is a high order function that takes function as a argument
           // Real-time partial transcripts
           onPartialTranscript: (partialText) => {
-            // console.log(`[${socket.id}] 📝 Partial transcript: ${partialText}`);
             socket.emit("partial-transcription", { text: partialText });
           },
           
           // Individual final transcripts (per speech segment)
           onFinalTranscript: async (finalText) => {
-            //here is the flaw/erroe in code When the stream detects a pause, it triggers the onFinalTranscript function. This is the most crucial part of our code workflow, as it is the moment when a user's complete answer is captured and passed to the rest of your AI logic. The processTranscript function then takes this complete thought and uses it to decide what to do next - but i dont want this because when user is taking a little pause the answer is getting generated but actually user has not finished his response its just a little pause now tell me how to handle this
-            console.log(`[${socket.id}] 📝 Final segment: ${finalText}`);
+            // This is now just a segment; the client will handle combining it.
+            console.log(`[${socket.id}] 📝 Final segment received: ${finalText}`);
+            //here we can maintain the transcription data and send to processTranscript function when we get 'completeResponse' socket event form frontend
             socket.emit("transcription", { text: finalText });
-            
-            // Call the dedicated processing function
-            await processTranscript(socket, finalText);
           },
           
           // Error handling
@@ -132,12 +127,12 @@ export async function InterviewSocket(server) {
           
           // Complete session transcript
           onStreamEnd: async (completeTranscript) => {
-            console.log(`[${socket.id}] 📄 Complete transcript: ${completeTranscript}`);
+            console.log(`[${socket.id}] 📄 Stream ended with complete transcript: ${completeTranscript}`);
             socket.emit("transcriptionComplete", { text: completeTranscript });
           }
         });
 
-        // Start the stream
+        // Start the stream 
         const started = speechStream.startStream();
         if (!started) {
           socket.emit("transcription-error", "Failed to start speech recognition");
@@ -157,6 +152,12 @@ export async function InterviewSocket(server) {
       } else {
         console.warn(`[${socket.id}] Received audio chunk but no active stream`);
       }
+    });
+
+    // 🔹 Receive the final, complete response from the client
+    socket.on("completeResponse", async (data) => {
+      console.log(`[${socket.id}] 👆 User sent complete response`);
+      await processTranscript(socket, data.finalText);
     });
 
     // 🔹 Stop speech recognition
