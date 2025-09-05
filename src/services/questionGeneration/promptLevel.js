@@ -1,7 +1,7 @@
 //these question rules apply for programming language and core subject
 
 const DIFFICULTY_CONFIGS = {
-  easy: {
+  begineer: {
     CRITICAL_RULES: [
       "Generate ONE simple, straightforward question at a time about the selected topic.",
       "Focus on core concepts, definitions, and everyday real-world examples.",
@@ -22,7 +22,7 @@ const DIFFICULTY_CONFIGS = {
       "Communication confidence"
     ]
   },
-  medium: {
+  intermediate: {
     CRITICAL_RULES: [
       "Ask questions that require application of topic knowledge to practical situations.",
       "always ask one question at a time",
@@ -42,7 +42,7 @@ const DIFFICULTY_CONFIGS = {
       "Explaining reasoning clearly"
     ]
   },
-  hard: {
+  expert: {
     CRITICAL_RULES: [
       "Pose in-depth, challenging questions that test deep understanding, multi-step reasoning, and real-world expertise.",
       `Scenario-based questions ("How would you handle...")`,

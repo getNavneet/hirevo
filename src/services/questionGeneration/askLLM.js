@@ -1,13 +1,13 @@
 // Generate next interview question
 import OpenAI from "openai";
-import {createQuestionGenerationPrompt} from './prompt.js'
+import {createQuestionGenerationPrompt} from './prompts.js'
 
 const openai = new OpenAI({
     apiKey: process.env.OPEN_AI_API,
 });
 
 
-async function generateInterviewQuestion(sessionContext) {
+async function generateInterviewQuestion(sessionContext,options={}) {
   try {
 
     const {

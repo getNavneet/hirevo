@@ -1,20 +1,14 @@
-// socket.js
-import { Server } from "socket.io";
+import { getIo } from "./socket.js"; 
 import InterviewSession from "./models/interviewsession.model.js";
 
-export function initSocket(server) {
-  const io = new Server(server, {
-    cors: {
-      origin: "*", // restrict later
-      methods: ["GET", "POST"],
-    },
-  });
-
+export function initSocket() {
+    const io = getIo(); 
   io.on("connection", (socket) => {
-    console.log(`[${socket.id}] connected`);
+    console.log(`[${socket.id}] connected to server`);
+     socket.data.pendingAudio = [];
 
     // 🔹 Client sends sessionId to join interview
-    socket.on("joinInterview", async ({ sessionId }) => {
+    socket.on("joinInterview", async ({ sessionId }) => { 
       try {
         const session = await InterviewSession.findOne({ sessionId });
 
@@ -23,7 +17,7 @@ export function initSocket(server) {
           return;
         }
 
-        // Attach session to socket
+        // Attach session to socket, each client-new socket obj , stored in ram
         socket.session = session;
 
         console.log(`[${socket.id}] joined interview: ${sessionId}`);
@@ -47,25 +41,74 @@ export function initSocket(server) {
       }
     });
 
-    // 🔹 Receive user answers
-    socket.on("answer", async (answer) => {
-      if (!socket.session) {
-        socket.emit("error", { message: "Session not initialized" });
-        return;
+  // ✅ Receive audio chunks
+    socket.on("audioChunk", (chunk) => {
+      socket.data.pendingAudio.push(Buffer.from(chunk));
+    });
+
+    // ✅ End of user's answer
+    socket.on("endAnswer", async ({ sessionId, lastQuestionId }) => {
+      const audioBuffer = Buffer.concat(socket.data.pendingAudio || []);
+      socket.data.pendingAudio = [];
+
+      try {
+        // 🔹 Transcribe audio
+        const transcription = await openai.audio.transcriptions.create({
+          file: new File([audioBuffer], "speech.wav", { type: "audio/wav" }),
+          model: "gpt-4o-mini-transcribe",
+        });
+
+        const userAnswer = transcription.text;
+        console.log("📝 Transcript:", userAnswer);
+
+        // 🔹 Load session from DB
+        let session = await InterviewSession.findOne({ sessionId });
+        if (!session) {
+          socket.emit("error", { message: "Invalid session ID" });
+          return;
+        }
+
+        // 🔹 Update conversation history with user's answer
+        const updatedHistory = session.conversationHistory.map((q) =>
+          q.questionId === lastQuestionId ? { ...q, response: userAnswer } : q
+        );
+        session.conversationHistory = updatedHistory;
+
+        // 🔹 Process and get next question
+        const result = await processResponseAndGenerateNext(
+          session.toObject(), // if you need a plain JS object
+          lastQuestionId,
+          userAnswer
+        );
+
+        if (result.type === "complete") {
+          socket.emit("interviewComplete", { message: result.message });
+          return;
+        }
+
+        const nextQ = result.nextQuestion;
+
+        // 🔹 Add next question to session
+        session.conversationHistory.push(nextQ);
+        await session.save();
+
+        // 🔹 Convert to audio
+        const tts = await openai.audio.speech.create({
+          model: "gpt-4o-mini-tts",
+          voice: "alloy",
+          input: nextQ.question,
+        });
+
+        // 🔹 Send next question back to client
+        socket.emit("question", {
+          text: nextQ.question,
+          questionId: nextQ.questionId,
+          audio: Buffer.from(await tts.arrayBuffer()),
+        });
+      } catch (err) {
+        console.error("❌ Error handling audio:", err);
+        socket.emit("error", { message: "Error processing answer" });
       }
-
-      console.log(`[${socket.id}] Answer received:`, answer);
-
-      // Save answer into DB
-      await InterviewSession.findOneAndUpdate(
-        { sessionId: socket.session.sessionId },
-        { $push: { conversationHistory: { question: socket.lastQuestion, answer } } }
-      );
-
-      // Generate next question
-      // const nextQ = await generateNextQuestion(socket.session, answer);
-      // socket.lastQuestion = nextQ;
-      // socket.emit("question", nextQ);
     });
 
     socket.on("disconnect", () => {

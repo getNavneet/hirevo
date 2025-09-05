@@ -6,7 +6,7 @@
   "scripts": {
     "start": "nodemon -r dotenv/config --experimental-json-modules src/index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-     "postinstall": "patch-package"
+    "postinstall": "patch-package"
   },
   "author": "",
   "license": "ISC",
@@ -24,6 +24,7 @@
     "mongoose": "^8.18.0",
     "multer": "^2.0.2",
     "nodemon": "^3.1.10",
+    "openai": "^5.19.1",
     "patch-package": "^8.0.0",
     "pdf-parse": "^1.1.1",
     "socket.io": "^4.8.1"

@@ -1,23 +1,48 @@
+//similar to transcription.claude.js
 import InterviewSession from "../models/interviewsession.model.js";
 import { createSpeechStream } from "../services/sst/speechHandlerGoogle.js";
+import { 
+  initializeInterviewFromDB, 
+  processResponseAndGenerateNext,
+  addResponseToSession,
+} from "../services/questionGeneration/index.dbintegration2.js";
 
-// Separate function for processing transcripts
-async function processTranscript(transcript, sessionData) {
-  // Your LLM processing logic here
-  console.log('Processing transcript:', transcript);
-  console.log('Session data:', sessionData);
-  
 
+async function processTranscript(socket, finalText) {
+  // Get the last question ID from the current session history
+  const lastQuestionId = socket.workflowSession?.conversationHistory?.slice(-1)[0]?.questionId;
   
-  // Example: Send to your LLM service
-  // const response = await llmService.process(transcript, sessionData);
-  // return response;
-  
-  return { processed: true, transcript };
+  if (!socket.workflowSession || !lastQuestionId) {
+    console.warn(`[${socket.id}] Skipping transcript processing: no active session or last question ID.`);
+    return;
+  }
+
+  try {
+    // Process the user's response and get the next question
+    const result = await processResponseAndGenerateNext(socket.workflowSession, lastQuestionId, finalText);
+    
+    if (result.type === "continue") {
+      // Update the session state on the socket
+      socket.workflowSession = result.updatedSession;
+      // Emit the new question to the client
+      socket.emit("nextQuestion", { question: result.nextQuestion.question });
+    } else if (result.type === "complete") {
+      // The interview is over, send the completion message
+      socket.workflowSession = result.updatedSession;
+      socket.emit("interviewComplete", { message: result.message });
+    } else {
+      // Handle workflow error
+      console.error(`[${socket.id}] Workflow error:`, result.message);
+      socket.emit("error", { message: "Workflow error processing response." });
+    }
+  } catch (err) {
+    console.error(`[${socket.id}] Error processing transcript:`, err);
+    socket.emit("error", { message: "Server error processing response." });
+  }
 }
 
 export async function InterviewSocket(server) {
-const { Server } = await import("socket.io"); // dynamic import since top-level used elsewhere
+  const { Server } = await import("socket.io"); // dynamic import since top-level used elsewhere
   const io = new Server(server, {
     cors: {
       origin: "*", // frontend URL
@@ -25,6 +50,7 @@ const { Server } = await import("socket.io"); // dynamic import since top-level 
       credentials: true,
     },
   });
+  
   io.on("connection", (socket) => {
     console.log(`[${socket.id}] connected to server`);
 
@@ -33,23 +59,36 @@ const { Server } = await import("socket.io"); // dynamic import since top-level 
     // 🔹 Client sends sessionId to join interview
     socket.on("joinInterview", async ({ sessionId }) => {
       try {
-        const session = await InterviewSession.findOne({ sessionId });
+        console.log(`[${socket.id}] 🤝 Attempting to join interview: ${sessionId}`);
+        
+        // Use the workflow function to initialize the full session context
+        const initResult = await initializeInterviewFromDB(sessionId);
 
-        if (!session) {
+        if (!initResult.success) {
           socket.emit("error", { message: "Invalid sessionId" });
           return;
         }
 
-        socket.session = session;
-        console.log(`[${socket.id}] joined interview: ${sessionId}`);
+        // Store the full workflow session on the socket object
+        socket.workflowSession = initResult.workflowSession;
+        console.log(`[${socket.id}] Joined interview: ${sessionId}`);
 
-        socket.emit("interviewReady", {
-          sessionId,
-          category: session.category,
-          subcategory: session.subcategory,
-          level: session.level,
-          resumeAvailable: !!session.resume,
-        });
+        // Now, generate the first question immediately after joining
+        // We call processResponseAndGenerateNext with no response to get the first question
+        const result = await processResponseAndGenerateNext(socket.workflowSession, null, null);
+        
+        if (result.type === "continue") {
+          // Update the session state on the socket and send the question to the client
+          socket.workflowSession = result.updatedSession;
+          socket.emit("interviewReady", {
+            sessionId,
+            question: result.nextQuestion.question,
+          });
+        } else {
+          // Handle potential errors from the workflow
+          console.error(`[${socket.id}] Error generating first question:`, result.message);
+          socket.emit("error", { message: "Failed to start interview. Please try again." });
+        }
 
       } catch (err) {
         console.error("Error joining interview:", err);
@@ -66,7 +105,7 @@ const { Server } = await import("socket.io"); // dynamic import since top-level 
         speechStream = createSpeechStream({
           // Real-time partial transcripts
           onPartialTranscript: (partialText) => {
-            console.log(`[${socket.id}] 📝 Partial transcript: ${partialText}`);
+            // console.log(`[${socket.id}] 📝 Partial transcript: ${partialText}`);
             socket.emit("partial-transcription", { text: partialText });
           },
           
@@ -75,15 +114,8 @@ const { Server } = await import("socket.io"); // dynamic import since top-level 
             console.log(`[${socket.id}] 📝 Final segment: ${finalText}`);
             socket.emit("transcription", { text: finalText });
             
-            // Optional: Process each segment immediately
-            if (socket.session) {
-              try {
-                const result = await processTranscript(finalText, socket.session);
-                socket.emit("transcriptProcessed", result);
-              } catch (err) {
-                console.error(`[${socket.id}] Error processing transcript:`, err);
-              }
-            }
+            // Call the dedicated processing function
+            await processTranscript(socket, finalText);
           },
           
           // Error handling
@@ -101,16 +133,6 @@ const { Server } = await import("socket.io"); // dynamic import since top-level 
           onStreamEnd: async (completeTranscript) => {
             console.log(`[${socket.id}] 📄 Complete transcript: ${completeTranscript}`);
             socket.emit("transcriptionComplete", { text: completeTranscript });
-            
-            // Process complete transcript
-            if (socket.session && completeTranscript) {
-              try {
-                const result = await processTranscript(completeTranscript, socket.session);
-                socket.emit("finalTranscriptProcessed", result);
-              } catch (err) {
-                console.error(`[${socket.id}] Error processing final transcript:`, err);
-              }
-            }
           }
         });
 
@@ -148,14 +170,6 @@ const { Server } = await import("socket.io"); // dynamic import since top-level 
       socket.emit("speechRecognitionStopped");
     });
 
-    // 🔹 Get current transcript (optional)
-    socket.on("getCurrentTranscript", () => {
-      if (speechStream) {
-        const currentTranscript = speechStream.getAccumulatedTranscript();
-        socket.emit("currentTranscript", { text: currentTranscript });
-      }
-    });
-
     // 🔹 Cleanup on disconnect
     socket.on("disconnect", () => {
       console.log(`[${socket.id}] disconnected`);
@@ -163,6 +177,11 @@ const { Server } = await import("socket.io"); // dynamic import since top-level 
       if (speechStream) {
         speechStream.endStream();
         speechStream = null;
+      }
+      
+      // Clean up the session context from the socket
+      if (socket.workflowSession) {
+          socket.workflowSession = null;
       }
     });
   });
