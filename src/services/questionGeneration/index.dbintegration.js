@@ -1,4 +1,4 @@
-import { generateInterviewQuestion } from "./askLLm.js";
+import { generateInterviewQuestion } from "./askLLM.js";
 import InterviewSession from "../../models/interviewsession.model.js";
 
 // ==================== LEVEL-BASED CONFIGURATION ====================
@@ -30,9 +30,14 @@ async function initializeInterviewFromDB(sessionId) {
     if (!dbSession) {
       throw new Error(`Session not found: ${sessionId}`);
     }
-
+     console.log("=====================================")
+     console.log(dbSession)
+     console.log("=====================================")
     // Normalize level
     const normalizedLevel = normalizeLevel(dbSession.level);
+    console.log("=====================================")
+    console.log(normalizedLevel)
+    console.log("=====================================")
     const levelConfig = LEVEL_CONFIG[normalizedLevel];
 
     if (!levelConfig) {
@@ -47,18 +52,17 @@ async function initializeInterviewFromDB(sessionId) {
       targetLevel: normalizedLevel,
       interviewFor: dbSession.interviewType || 'core', // resume, core, programming, personal
       maxQuestions: levelConfig.maxQuestions,
-      allowedDifficulties: levelConfig.difficulty,
       // Add any other goals from database
       ...dbSession.interviewGoals
     };
       //candidate profile if available
-    // const candidateProfile = {
-    //   resume: dbSession.resume,
-    //   experience: dbSession.experience,
-    //   skills: dbSession.skills,
-    //   // Add any other profile data
-    //   ...dbSession.candidateProfile
-    // };
+    const candidateProfile = {
+      resume: dbSession.resume,
+      experience: dbSession.experience,
+      skills: dbSession.skills,
+      // Add any other profile data
+      ...dbSession.candidateProfile
+    };
 
     // Create workflow session context
     const workflowSession = createInterviewSession(interviewGoals, candidateProfile);
@@ -78,7 +82,7 @@ async function initializeInterviewFromDB(sessionId) {
       success: true,
       workflowSession,
       dbSession,
-      levelConfig
+      
     };
 
   } catch (error) {
@@ -137,13 +141,15 @@ function normalizeLevel(level) {
   
   const levelStr = level.toString().toLowerCase();
   
-  for (const [key, config] of Object.entries(LEVEL_CONFIG)) {
-    if (config.alias.includes(levelStr)) {
-      return key;
-    }
+  if (['beginner', 'easy', 'basic'].includes(levelStr)) {
+    return 'beginner';
+  } else if (['intermediate', 'medium', 'mid'].includes(levelStr)) {
+    return 'intermediate';
+  } else if (['expert', 'hard', 'advanced'].includes(levelStr)) {
+    return 'expert';
   }
   
-  return 'beginner'; // default fallback
+  return 'easy'; // default fallback
 }
 
 function generateSessionId() {
@@ -321,80 +327,6 @@ function generateCompletionMessage(sessionContext) {
   return message;
 }
 
-// ==================== ENHANCED TESTING FUNCTION ====================
-
-// Updated main function for testing with DB integration
-// async function testInterviewWithDB(sessionId) {
-//   console.log("🎤 Welcome to AI Interview Bot (DB Mode)");
-//   console.log("----------------------------------------");
-
-//   // Initialize from database
-//   const initResult = await initializeInterviewFromDB(sessionId);
-  
-//   if (!initResult.success) {
-//     console.error("❌ Failed to initialize interview:", initResult.error);
-//     return;
-//   }
-
-//   let session = initResult.workflowSession;
-//   const { levelConfig } = initResult;
-  
-//   console.log(`📋 Interview Details:`);
-//   console.log(`   Topic: ${session.interviewGoals.primaryTopic}`);
-//   console.log(`   Level: ${session.interviewGoals.targetLevel}`);
-//   console.log(`   Max Questions: ${levelConfig.maxQuestions}`);
-//   console.log(`   Interview Type: ${session.interviewGoals.interviewFor}`);
-
-//   let lastQuestionId = null;
-
-//   const readline = await import('readline');
-//   const rl = readline.createInterface({
-//     input: process.stdin,
-//     output: process.stdout,
-//   });
-
-//   async function askQuestion(questionObj) {
-//     return new Promise((resolve) => {
-//       rl.question(`\n❓ ${questionObj.question}\n\n💬 Your answer: `, (answer) => {
-//         resolve(answer);
-//       });
-//     });
-//   }
-
-//   // Interview loop
-//   while (true) {
-//     const result = await processResponseAndGenerateNext(
-//       session,
-//       lastQuestionId,
-//       lastQuestionId ? session.conversationHistory.slice(-1)[0].response : null
-//     );
-
-//     if (result.type === "complete") {
-//       console.log("\n✅ Interview Finished!");
-//       console.log(result.message);
-//       console.log(`📊 Final Stats: ${session.sessionMetrics.questionsAnswered}/${session.sessionMetrics.questionsAsked} questions answered`);
-//       break;
-//     }
-
-//     if (result.type === "error") {
-//       console.error("❌ Error:", result.message);
-//       break;
-//     }
-
-//     const nextQ = result.nextQuestion;
-//     session = result.updatedSession;
-//     lastQuestionId = nextQ.questionId;
-
-//     // Ask question
-//     const userAnswer = await askQuestion(nextQ);
-
-//     // Save response to session
-//     session = addResponseToSession(session, lastQuestionId, userAnswer);
-//   }
-
-//   rl.close();
-// }
-
 // ==================== EXPORTS ====================
 
 export {
@@ -412,8 +344,7 @@ export {
   // Utilities
   generateSessionId,
   normalizeLevel,
-  LEVEL_CONFIG,
   
   // Testing
-  testInterviewWithDB
+  // testInterviewWithDB
 };
