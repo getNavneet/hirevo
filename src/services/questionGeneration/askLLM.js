@@ -11,7 +11,7 @@ async function generateInterviewQuestion(sessionContext,options={}) {
   try {
 
     const {
-      model = 'gpt-4',  //  gpt-4 ,gpt-5,gpt-4o-mini
+      model = 'gpt-4.1-mini',  //  gpt-4(very much coastly, AVOID) ,gpt-5,gpt-4o-mini
       temperature = 0.7,
       maxTokens = 300
     } = options;

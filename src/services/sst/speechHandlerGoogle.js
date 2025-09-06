@@ -1,7 +1,61 @@
 import { SpeechClient } from '@google-cloud/speech';
 import stream from 'stream';
 
-const speechClient = new SpeechClient();
+const ENHANCED_SPEECH_CONFIG = {
+  encoding: 'WEBM_OPUS', // or 'LINEAR16' for better quality
+  sampleRateHertz: 48000, // Higher sample rate for better quality
+  languageCode: 'en-IN', // Indian English - adjust based on your region
+  alternativeLanguageCodes: ['en-US', 'en-GB'], // Fallback languages
+  
+  // Enable advanced features for better accuracy
+  enableAutomaticPunctuation: true,
+  enableWordTimeOffsets: true,
+  enableWordConfidence: true,
+  enableSpeakerDiarization: false, // Turn on if multiple speakers
+  
+  // Audio enhancement features
+  audioChannelCount: 1,
+  enableSeparateRecognitionPerChannel: false,
+  
+  // Model selection for better accuracy
+  model: 'latest_long', // Options: 'latest_long', 'latest_short', 'command_and_search'
+  useEnhanced: true, // Use enhanced models (may cost more)
+  
+  // Adaptation and context
+  speechContexts: [{
+    phrases: [
+      // Technical terms commonly used in programming interviews
+      'JavaScript', 'Python', 'React', 'Node.js', 'database', 'API',
+      'algorithm', 'data structure', 'object oriented', 'function',
+      'variable', 'array', 'string', 'boolean', 'integer', 'framework',
+      'library', 'backend', 'frontend', 'full stack', 'debugging',
+      'testing', 'deployment', 'version control', 'Git', 'GitHub',
+      'SQL', 'NoSQL', 'MongoDB', 'Express', 'Angular', 'Vue',
+      'TypeScript', 'async', 'await', 'promise', 'callback',
+      'REST API', 'GraphQL', 'microservices', 'Docker', 'AWS',
+      // Common Indian names and terms
+      'Pradesh', 'Rajasthan', 'Mumbai', 'Delhi', 'Bangalore', 'Chennai',
+      'Hyderabad', 'Pune', 'Kolkata', 'Ahmedabad'
+    ],
+    boost: 20.0 // Higher boost for technical terms
+  }],
+  
+  // Profanity filter and content filtering
+  profanityFilter: false, // Keep true responses
+  
+  // Metadata for better processing
+  metadata: {
+    interactionType: 'DISCUSSION', // Options: DISCUSSION, PRESENTATION, PHONE_CALL
+    industryNanosCode: 541511, // Software publishers
+    microphoneDistance: 'NEARFIELD', // NEARFIELD, MIDFIELD, FARFIELD
+    originalMediaType: 'AUDIO', 
+    recordingDeviceType: 'PC', // PC, PHONE, OUTDOOR
+    recordingDeviceName: 'Interview Microphone',
+  }
+};
+
+
+const speechClient = new SpeechClient();// in this we can give env file
 
 function createSpeechStream(callbacks = {}) {
   let recognizeStream = null;
@@ -21,7 +75,7 @@ function createSpeechStream(callbacks = {}) {
   const requestConfig = {
     config: {
       encoding: 'WEBM_OPUS',
-      sampleRateHertz: 48000,
+      sampleRateHertz: 16000,
       languageCode: 'en-US',
       model: 'latest_long',
       enableAutomaticPunctuation: true,
@@ -45,7 +99,10 @@ function createSpeechStream(callbacks = {}) {
       onStreamStart();
 
       recognizeStream = speechClient
-        .streamingRecognize(requestConfig)
+        .streamingRecognize({
+          config: ENHANCED_SPEECH_CONFIG,
+          interimResults: true
+        })
         .on('error', (err) => {
           console.error('Google Speech error:', err);
           isStreamActive = false;
@@ -64,7 +121,7 @@ function createSpeechStream(callbacks = {}) {
 
                 if (isFinal) {
                   transcribed += transcript + " ";
-                  
+                  // it automatically create final when a small pause it there in a speech
                   // Send individual final transcript
                   onFinalTranscript(transcript);
                 } else {
