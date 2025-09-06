@@ -6,7 +6,7 @@ const ttsClient = new TextToSpeechClient();
 async function synthesizeSpeech(text) {
   const request = {
     input: { text: text },
-    voice: { languageCode: 'en-IN', name: 'en-IN-Wavenet-B' },
+    voice: { languageCode: 'en-IN', name: 'en-IN-Wavenet-B' }, //en-IN-Wavenet-A (female),en-IN-Wavenet-B
     audioConfig: { audioEncoding: 'MP3' },
   };
 
