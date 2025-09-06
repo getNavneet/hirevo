@@ -72,17 +72,7 @@ function createSpeechStream(callbacks = {}) {
     onStreamEnd = () => {},
   } = callbacks;
 
-  const requestConfig = {
-    config: {
-      encoding: 'WEBM_OPUS',
-      sampleRateHertz: 16000,
-      languageCode: 'en-US',
-      model: 'latest_long',
-      enableAutomaticPunctuation: true,
-    },
-    interimResults: true, // Enable for partial transcripts
-  };
-
+ 
   function startStream() {
     if (isStreamActive) {
       console.warn('🚫 Speech stream already active');
