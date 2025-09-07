@@ -139,7 +139,10 @@ function GetStartedPage() {
         {currentStep === "upload" && (
           <ResumeUploader onUpload={handleResumeUpload} onBack={handleBack} 
           />
+
+          //the problem we are getting that the pages goes blank after selecting the level is because after selecting the level our 'currentStep' variable is getting changes and we dont have anything else to dispaly because on this page we are conditionally displaying the components like when 'currentStep' is category we have caterogyCard dispaly component, when we have 'currentStep' is sub-category we are displaying sub-category card but after selecting level we dont have anything to dispaly
         )}
+
       </main>
     </div>
   )
