@@ -1,7 +1,9 @@
 import { motion } from "framer-motion";
 import { Sparkles, Mic, Brain, ArrowRight } from "lucide-react";
+import { useNavigate } from 'react-router-dom';
 
 function Hero() {
+  const navigate = useNavigate();
   return (
     <section className="relative flex items-center justify-center min-h-screen pt-20 lg:pt-16 bg-black text-white overflow-hidden">
       
@@ -218,6 +220,7 @@ function Hero() {
             <motion.button
               whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.98 }}
+              onClick={() => navigate('/GetStarted')}
               className="group w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold shadow-2xl shadow-indigo-600/30 flex items-center justify-center gap-2 transition-all duration-300 relative overflow-hidden"
             >
               {/* Button shine effect */}

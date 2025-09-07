@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, useEffect } from "react"
 import { useInterviewStore } from "../store/interview.store"
 import AIAnimation from "./AIAnimation"
@@ -38,7 +36,7 @@ export default function InterviewRoom() {
     return () => clearInterval(timer)
   }, [timeRemaining, updateTimer])
 
-  const formatTime = (seconds) => {
+  const formatTime = (secUserVideoonds) => {
     const mins = Math.floor(seconds / 60)
     const secs = seconds % 60
     return `${mins}:${secs.toString().padStart(2, "0")}`

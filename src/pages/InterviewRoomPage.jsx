@@ -1,11 +1,12 @@
 import InterviewRoom from "../components/InterviewRoom/InterviewRoom";
 import { useInterviewStore } from "../store/interview.store";
 function InterviewRoomPage() {
-const { selectedLevel } = useInterviewStore();
-
+const { selectedLevel,currentStep } = useInterviewStore();
   return (
     <div>
-      {selectedLevel === "interview" && <InterviewRoom/>}
+      {console.log(selectedLevel)}
+      {console.log(currentStep)}
+   <InterviewRoom/>
      
     </div>
   );

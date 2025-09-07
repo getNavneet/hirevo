@@ -9,8 +9,6 @@ export const useInterviewStore = create((set) => ({
   selectedSubcategory: null,  //
   selectedLevel: null,
   uploadedResume: null,
-
-  // Interview state
   isInterviewActive: false,
   // currentQuestion: 0,
   // totalQuestions: 5,

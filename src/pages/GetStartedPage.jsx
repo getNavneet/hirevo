@@ -3,6 +3,7 @@ import CategoryCard from "../components/CategoryCard"
 import SubcategorySelector from "../components/SubcategorySelector"
 import LevelSelector from "../components/LevelSelector"
 import ResumeUploader from "../components/ResumeUploader"
+import { s } from "framer-motion/client"
 
 const categories = [
   {
@@ -70,7 +71,10 @@ function GetStartedPage() {
 
   const handleLevelSelect = (level) => {
     setLevel(level)
-    setStep("interview")  //from this we will render interviewRoom if step is not interview dont open interviewRoom as level selection is always a last step
+    console.log(level)
+    setStep("interview")  
+    //from this we will render interviewRoom if step is not interview dont open interviewRoom as level selection is always a last step
+    // console.log("currentStep", currentStep)
   }
 
   const handleResumeUpload = (file) => {
