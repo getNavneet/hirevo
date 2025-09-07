@@ -1,9 +1,8 @@
-import { useInterviewStore } from "../store/interview.store"
-import CategoryCard from "../components/CategoryCard"
-import SubcategorySelector from "../components/SubcategorySelector"
-import LevelSelector from "../components/LevelSelector"
-import ResumeUploader from "../components/ResumeUploader"
-import { s } from "framer-motion/client"
+import { useInterviewStore } from "../store/interview.store";
+import CategoryCard from "../components/CategoryCard";
+import SubcategorySelector from "../components/SubcategorySelector";
+import LevelSelector from "../components/LevelSelector";
+import ResumeUploader from "../components/ResumeUploader";
 
 const categories = [
   {
@@ -34,7 +33,7 @@ const categories = [
     subtitle: "Behavioral questions and soft skills assessment",
     buttonText: "Start Practice",
   },
-]
+];
 
 function GetStartedPage() {
   const {
@@ -48,39 +47,37 @@ function GetStartedPage() {
     setResume,
     startInterview,
     reset,
-  } = useInterviewStore()
+  } = useInterviewStore();
 
   const handleCategorySelect = (categoryId) => {
-    setCategory(categoryId)
-   
+    setCategory(categoryId);
 
     if (categoryId === "personal") {
-     setStep("level")
+      setStep("level");
     } else if (categoryId === "resume") {
-      setStep("upload")
+      setStep("upload");
     } else {
-      setStep("subcategory")
+      setStep("subcategory");
     }
-
-  }
+  };
 
   const handleSubcategorySelect = (subcategory) => {
-    setSubcategory(subcategory)
-    setStep("level")
-  }
+    setSubcategory(subcategory);
+    setStep("level");
+  };
 
   const handleLevelSelect = (level) => {
-    setLevel(level)
-    console.log(level)
-    setStep("interview")  
+    setLevel(level);
+    console.log(level);
+    // setStep("interview");
     //from this we will render interviewRoom if step is not interview dont open interviewRoom as level selection is always a last step
     // console.log("currentStep", currentStep)
-  }
+  };
 
   const handleResumeUpload = (file) => {
-    setResume(file)
-    setStep("level")
-  }
+    setResume(file);
+    setStep("level");
+  };
 
   // const handleStartResumeInterview = () => {
   //   startInterview()
@@ -88,19 +85,18 @@ function GetStartedPage() {
 
   const handleBack = () => {
     if (currentStep === "subcategory") {
-      setStep("category")
+      setStep("category");
     } else if (currentStep === "level") {
-      if(setCategory == 'programming' || setCategory == 'cs'){
-        setStep("subcategory")
-      }
-      else{
-        setStep("category")
+      if (selectedCategory == "programming" || selectedCategory == "cs") {
+        setStep("subcategory");
+      } else {
+        setStep("category");
       }
     } else if (currentStep === "upload") {
-      setStep("category")
+      setStep("category");
     }
-  }
-  
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Main Content with header spacing */}
@@ -108,10 +104,12 @@ function GetStartedPage() {
         {currentStep === "category" && (
           <div className="space-y-8">
             <div className="text-center space-y-4">
-              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900">Choose Your Interview Type</h2>
+              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900">
+                Choose Your Interview Type
+              </h2>
               <p className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto px-4">
-                Select the type of interview you'd like to practice. Each category is designed to help you improve
-                specific skills.
+                Select the type of interview you'd like to practice. Each
+                category is designed to help you improve specific skills.
               </p>
             </div>
 
@@ -131,21 +129,31 @@ function GetStartedPage() {
         )}
 
         {currentStep === "subcategory" && (
-          <SubcategorySelector category={selectedCategory} onSelect={handleSubcategorySelect} onBack={handleBack} />
+          <SubcategorySelector
+            category={selectedCategory}
+            onSelect={handleSubcategorySelect}
+            onBack={handleBack}
+          />
         )}
 
-        {currentStep === "level" && <LevelSelector category={selectedCategory} onSelect={handleLevelSelect} onBack={handleBack} />}
+        {currentStep === "level" && (
+          <LevelSelector
+            category={selectedCategory}
+            onSelect={handleLevelSelect}
+            onBack={handleBack}
+          />
+        )}
 
         {currentStep === "upload" && (
-          <ResumeUploader onUpload={handleResumeUpload} onBack={handleBack} 
-          />
+          <ResumeUploader onUpload={handleResumeUpload} onBack={handleBack} />
 
           //the problem we are getting that the pages goes blank after selecting the level is because after selecting the level our 'currentStep' variable is getting changes and we dont have anything else to dispaly because on this page we are conditionally displaying the components like when 'currentStep' is category we have caterogyCard dispaly component, when we have 'currentStep' is sub-category we are displaying sub-category card but after selecting level we dont have anything to dispaly
         )}
 
+        
       </main>
     </div>
-  )
+  );
 }
 
 export default GetStartedPage;
