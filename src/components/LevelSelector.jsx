@@ -2,6 +2,7 @@ import react, {useState} from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { useInterviewStore } from "../store/interview.store";
+import { connectSocket, joinInterview } from '../lib/socket';
 import api from '../lib/axios';
 const levelsForProgrammingAndCore = [
   {
@@ -111,38 +112,75 @@ export default function LevelSelector({ onSelect, onBack, category }) {
       selectedSubcategory,
       selectedLevel,
     } = useInterviewStore()
+
 const handleConnect = async () => {
   try {
     setLoading(true);
 
-    // prepare form-data
+    // Prepare form-data
     const formData = new FormData();
     formData.append("category", selectedCategory);
     formData.append("subcategory", selectedSubcategory);
     formData.append("level", selectedLevel);
 
     if (uploadedResume) {
-      formData.append("resume", uploadedResume); // must be a File object
+      formData.append("resume", uploadedResume);
     }
 
-    console.log("FormData ready...");
+    console.log("Starting interview...");
 
-    // send request
+    // Send request to get session ID
     const res = await api.post("/user/interview/start", formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
     });
     console.log("Interview started:", res.data);
+    const { sessionId } = res.data.data;
+    console.log("Interview started with session ID:", sessionId);
 
-    // Navigate user to the interview room
-    navigate('/interviewRoom');
+    // Connect to Socket.IO server
+    const socket = connectSocket();
+    
+    socket.on('connect', () => {
+      console.log('Connected to server');
+      let isConnected = true;
+      
+      // Join the interview room with session ID
+      joinInterview(sessionId);
+    });
+
+    socket.on('interviewReady', (data) => {
+      console.log('Interview is ready:', data);
+      // Navigate to interview room with session data
+      navigate('/interviewRoom', { 
+        state: { 
+          sessionId: data.sessionId,
+          firstQuestion: data.question,
+          firstAudio: data.audioData 
+        } 
+      });
+    });
+
+    socket.on('error', (error) => {
+      console.error('Socket error:', error);
+      setLoading(false);
+    });
+
+    socket.on('connect_error', (error) => {
+      console.error('Connection failed:', error);
+      setLoading(false);
+    });
+
+    // Initiate connection
+    socket.connect();
+
   } catch (error) {
     console.error("Error starting interview:", error);
-  } finally {
     setLoading(false);
   }
 };
+
 
 
 

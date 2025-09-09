@@ -9,7 +9,7 @@ function LandingPage() {
       <Hero/>
       <Features/>
       <HowItWorks/>
-      <Pricing/>
+      {/* <Pricing/> */}
       <FAQ/>
     </div>
   );

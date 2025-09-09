@@ -187,7 +187,7 @@ function Hero() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 0.6 }}
             >
-              Crack Your
+              Grab Your
             </motion.span>
             <motion.span 
               className="block bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-cyan-400 to-purple-400"
@@ -195,7 +195,7 @@ function Hero() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 0.8 }}
             >
-              Next Interview
+              Internship
             </motion.span>
           </motion.h1>
 
@@ -206,8 +206,9 @@ function Hero() {
             transition={{ duration: 0.6, delay: 1 }}
             className="text-sm sm:text-base md:text-lg lg:text-xl text-gray-400 max-w-3xl mx-auto leading-relaxed mb-6 sm:mb-8 lg:mb-10 px-4"
           >
-            Practice real-time interviews with an AI that asks you smart questions, 
-            listens to your answers, and gives instant feedback to boost your confidence.
+            {/* Practice real-time interviews with an AI that asks you smart questions, 
+            listens to your answers, and gives instant feedback to boost your confidence. */}
+            Practice real-time internship interviews with an AI that asks smart, role-specific questions, listens to your answers, and gives instant feedback to help you stand out and land that internship.
           </motion.p>
 
           {/* CTA Buttons */}
