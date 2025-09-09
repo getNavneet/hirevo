@@ -2,8 +2,9 @@ import connectDB from "./config/db.config.js";
 import { app } from "./app.js";
 import dotenv from "dotenv";
 import { createServer } from "http";
-import { InterviewSocket } from "./sockets/interviewSocket.js";//handles all the interview sockets
-
+// import { InterviewSocket } from "./sockets/interviewSocket.js";
+//handles all the interview sockets
+import { InterviewSocket } from "./sockets/interviewSocket.webspeech.js";
 dotenv.config();
 
 const PORT = process.env.PORT || 8000;

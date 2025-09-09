@@ -66,6 +66,7 @@ const DIFFICULTY_CONFIGS = {
 };
 
 function getQuestionRulesByLevel(level) {   //easy,medium,hard
+  console.log("level",level)
   const criticalRules= DIFFICULTY_CONFIGS[level].CRITICAL_RULES;
   const questionTypeToPrioritize= DIFFICULTY_CONFIGS[level].QUESTION_TYPES;
   const assessementFocus= DIFFICULTY_CONFIGS[level].ASSESSMENT_FOCUS;
