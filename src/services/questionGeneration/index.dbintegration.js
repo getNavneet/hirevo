@@ -101,6 +101,11 @@ async function saveSessionToDB(workflowSession) {
       lastActivity: new Date(),
       status: workflowSession.sessionMetrics.currentStatus || 'active'
     };
+    
+    //adding into database
+    console.log("--------adding in db---------------")
+    console.log(updateData)
+
 
     // If interview is complete, add completion data
     if (workflowSession.sessionMetrics.currentStatus === 'completed') {
@@ -270,7 +275,7 @@ async function processResponseAndGenerateNext(sessionContext, questionId, userRe
     return {
       type: 'continue',
       nextQuestion,
-      updatedSession: finalSession,
+      updatedSession: finalSession,   
       questionForTTS: nextQuestion.question
     };
 
@@ -339,6 +344,4 @@ export {
   generateSessionId,
   normalizeLevel,
   
-  // Testing
-  // testInterviewWithDB
 };

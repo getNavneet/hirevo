@@ -123,10 +123,6 @@ export async function InterviewSocket(server) {
 
     // 🔹 Receive the final, complete response from the client
     socket.on("completeResponse", async (data) => {
-      console.log(`[${socket.id}] 👆 User sent complete response`);
-      console.log("-----------------------------")
-      console.log(`[${socket.id}] 📝 Final transcript: ${data.finalText}`);
-      console.log("-----------------------------")
       await processTranscript(socket, data.finalText);
     });
 
