@@ -1,7 +1,7 @@
 //these question rules apply for programming language and core subject
 
 const DIFFICULTY_CONFIGS = {
-  begineer: {
+  beginner: {
     CRITICAL_RULES: [
       "Generate ONE simple, straightforward question at a time about the selected topic.",
       "Focus on core concepts, definitions, and everyday real-world examples.",
@@ -65,9 +65,15 @@ const DIFFICULTY_CONFIGS = {
   }
 };
 
-function getQuestionRulesByLevel(level) {   //easy,medium,hard
+function getQuestionRulesByLevel(level) {   //begineer, intermediate, expert
+  console.log("------------level--------------")
   console.log("level",level)
+  console.log("------------level--------------")
+
   const criticalRules= DIFFICULTY_CONFIGS[level].CRITICAL_RULES;
+  console.log("------------criticalRules--------------")
+  console.log("criticalRules", criticalRules)
+  console.log("------------criticalRules--------------")
   const questionTypeToPrioritize= DIFFICULTY_CONFIGS[level].QUESTION_TYPES;
   const assessementFocus= DIFFICULTY_CONFIGS[level].ASSESSMENT_FOCUS;
   return {criticalRules,questionTypeToPrioritize,assessementFocus}

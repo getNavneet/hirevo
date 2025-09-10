@@ -143,7 +143,7 @@ function normalizeLevel(level) {
     return 'expert';
   }
   
-  return 'easy'; // default fallback
+  return 'beginner'; // default fallback
 }
 
 function generateSessionId() {
