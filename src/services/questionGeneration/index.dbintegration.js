@@ -103,8 +103,8 @@ async function saveSessionToDB(workflowSession) {
     };
     
     //adding into database
-    console.log("--------adding in db---------------")
-    console.log(updateData)
+    // console.log("--------adding in db---------------")
+    // console.log(updateData)
 
 
     // If interview is complete, add completion data
@@ -268,9 +268,10 @@ async function processResponseAndGenerateNext(sessionContext, questionId, userRe
     const finalSession = addQuestionToSession(updatedSession, nextQuestion);
     
     // Auto-save to database after each question
-    if (finalSession.dbSessionId) {
-      await saveSessionToDB(finalSession);
-    }
+    // if (finalSession.dbSessionId) {
+    //   await saveSessionToDB(finalSession);
+    // }
+    //adding session in database every time will increase our server cost as well as time taking process we can store in redis or similar
 
     return {
       type: 'continue',
