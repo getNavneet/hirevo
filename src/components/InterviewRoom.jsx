@@ -59,12 +59,12 @@ const InterviewRoom = () => {
   const isPlayingRef = useRef(false);
 
   // Redirect if no session data
-  useEffect(() => {
-    if (!sessionId) {
-      navigate("/get-started");
-      return;
-    }
-  }, [sessionId, navigate]);
+  // useEffect(() => {
+  //   if (!sessionId) {
+  //     navigate("/getStarted");
+  //     return;
+  //   }
+  // }, [sessionId, navigate]);
 
   // Initialize Socket.IO event listeners
   useEffect(() => {

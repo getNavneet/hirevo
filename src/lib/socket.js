@@ -32,9 +32,36 @@ export const joinInterview = (sessionId) => {
   }
 };
 
+export const sendAudioChunk = (audioData) => {
+  if (socket && socket.connected ) {
+    socket.emit('audioChunk', audioData);
+  } else {
+    console.log('Skipping audio chunk - backend not recording or socket disconnected');
+  }
+};
+
 export const sendCompleteResponse = (data) => {
   if (socket && socket.connected) {
     socket.emit('completeResponse', data);
+  }
+};
+
+export const startSpeechRecognition = () => {
+  if (socket && socket.connected) {
+    console.log('Starting speech recognition...');
+   
+    socket.emit('startSpeechRecognition');
+  }  else {
+    console.log('Socket not connected, cannot start speech recognition');
+  }
+};
+
+export const stopSpeechRecognition = () => {
+  if (socket && socket.connected ) {
+    console.log('Stopping speech recognition...');
+    socket.emit('stopSpeechRecognition');
+  } else {
+    console.log('Socket not connected, cannot stop speech recognition');
   }
 };
 
