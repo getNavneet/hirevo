@@ -19,7 +19,7 @@ async function generateInterviewQuestion(sessionContext,options={}) {
     //get prompt accordingly
     const prompt = createQuestionGenerationPrompt(sessionContext);
      //integrate this into askLLM.js
-     console.log(prompt)
+    //  console.log(prompt)
     const response = await openai.chat.completions.create({
       model: model, 
       messages: [
@@ -42,7 +42,7 @@ async function generateInterviewQuestion(sessionContext,options={}) {
     console.error("Error generating question:", error);
     return {
       questionId: generateQuestionId(),
-      question: "Fallback: Can you tell me about your experience with this technology?",
+      question: "Sorry, server error occured while processing",
       difficulty: "medium",
     };
   }

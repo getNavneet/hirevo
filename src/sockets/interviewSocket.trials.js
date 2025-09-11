@@ -1,14 +1,16 @@
-//this file code allings with the condition that transcription will happen at frontend level and directly transcription will be provided with will be passed to LLM for transcription
-
+// interviewSocket.js - Using function-based transcription
 import {
   initializeInterviewFromDB,
   processResponseAndGenerateNext,
-  addResponseToSession,
 } from "../services/questionGeneration/index.dbintegration.js";
 import { synthesizeSpeech } from "../services/tts/ttsHandlerGoogle.js";
+import { 
+  initializeTranscription, 
+  destroyTranscription,
+  getTranscriptionStatus 
+} from "./transcriptionHandler.socket.js";
 
 async function processTranscript(socket, finalText) {
-  // Get the last question ID from the current session history
   const lastQuestionId =
     socket.workflowSession?.conversationHistory?.slice(-1)[0]?.questionId;
 
@@ -20,7 +22,6 @@ async function processTranscript(socket, finalText) {
   }
 
   try {
-    // Process the user's response and get the next question
     const result = await processResponseAndGenerateNext(
       socket.workflowSession,
       lastQuestionId,
@@ -28,22 +29,17 @@ async function processTranscript(socket, finalText) {
     );
 
     if (result.type === "continue") {
-      // Update the session state on the socket
       socket.workflowSession = result.updatedSession;
-
       const audioBuffer = await synthesizeSpeech(result.nextQuestion.question);
 
-      // Emit the new question to the client
       socket.emit("nextQuestion", {
         question: result.nextQuestion.question,
-        audioData: audioBuffer.toString("base64"), // Convert Buffer to Base64 for transmission
+        audioData: audioBuffer.toString("base64"),
       });
     } else if (result.type === "complete") {
-      // The interview is over, send the completion message
       socket.workflowSession = result.updatedSession;
       socket.emit("interviewComplete", { message: result.message });
     } else {
-      // Handle workflow error
       console.error(`[${socket.id}] Workflow error:`, result.message);
       socket.emit("error", { message: "Workflow error processing response." });
     }
@@ -54,10 +50,10 @@ async function processTranscript(socket, finalText) {
 }
 
 export async function InterviewSocket(server) {
-  const { Server } = await import("socket.io"); // dynamic import since top-level used elsewhere
+  const { Server } = await import("socket.io");
   const io = new Server(server, {
     cors: {
-      origin: "*", // frontend URL
+      origin: "*",
       methods: ["GET", "POST"],
       credentials: true,
     },
@@ -66,14 +62,14 @@ export async function InterviewSocket(server) {
   io.on("connection", (socket) => {
     console.log(`[${socket.id}] connected to server`);
 
-    // 🔹 Client sends sessionId to join interview
+    // Initialize transcription handler for this socket
+    initializeTranscription(socket);
+
+    // Interview-specific events
     socket.on("joinInterview", async ({ sessionId }) => {
       try {
-        console.log(
-          `[${socket.id}] 🤝 Attempting to join interview: ${sessionId}`
-        );
+        console.log(`[${socket.id}] 🤝 Attempting to join interview: ${sessionId}`);
 
-        // Use the workflow function to initialize the full session context
         const initResult = await initializeInterviewFromDB(sessionId);
 
         if (!initResult.success) {
@@ -81,11 +77,10 @@ export async function InterviewSocket(server) {
           return;
         }
 
-        // Store the full workflow session on the socket object
         socket.workflowSession = initResult.workflowSession;
         console.log(`[${socket.id}] Joined interview: ${sessionId}`);
 
-        // Now, generate the first question immediately after joining
+        // Generate first question
         const result = await processResponseAndGenerateNext(
           socket.workflowSession,
           null,
@@ -93,24 +88,17 @@ export async function InterviewSocket(server) {
         );
 
         if (result.type === "continue") {
-          // Update the session state on the socket and send the question to the client
           socket.workflowSession = result.updatedSession;
-
-          const audioBuffer = await synthesizeSpeech(
-            result.nextQuestion.question
-          );
+          
+          const audioBuffer = await synthesizeSpeech(result.nextQuestion.question);
 
           socket.emit("interviewReady", {
             sessionId,
             question: result.nextQuestion.question,
-            audioData: audioBuffer.toString("base64"), // Convert Buffer to Base64
+            audioData: audioBuffer.toString("base64"),
           });
         } else {
-          // Handle potential errors from the workflow
-          console.error(
-            `[${socket.id}] Error generating first question:`,
-            result.message
-          );
+          console.error(`[${socket.id}] Error generating first question:`, result.message);
           socket.emit("error", {
             message: "Failed to start interview. Please try again.",
           });
@@ -121,26 +109,38 @@ export async function InterviewSocket(server) {
       }
     });
 
-    // 🔹 Receive the final, complete response from the client
+    // Process complete user response
     socket.on("completeResponse", async (data) => {
-      console.log(
-        `[${socket.id}] 📝 Final transcript received: ${data.finalText || "EMPTY"}`
-      );
-      if (!data.finalText || !data.finalText.trim()) {
-        console.warn(`[${socket.id}] Empty transcript received`);
-        socket.emit("error", { message: "Empty response received. Please try again." });
-        return;
-      }
+      console.log(`[${socket.id}] 👆 User sent complete response`);
       await processTranscript(socket, data.finalText);
     });
 
-    // 🔹 Cleanup on disconnect
+    // Debug endpoint to check transcription status
+    socket.on("checkTranscriptionStatus", () => {
+      const status = getTranscriptionStatus(socket.id);
+      socket.emit("transcriptionStatus", status);
+      console.log(`[${socket.id}] 🔍 Transcription status:`, status);
+    });
+
+    // Cleanup on disconnect
     socket.on("disconnect", () => {
       console.log(`[${socket.id}] disconnected`);
-      // Clean up the session context from the socket
+      
+      // Clean up transcription
+      destroyTranscription(socket);
+      
+      // Clean up session
       if (socket.workflowSession) {
         socket.workflowSession = null;
       }
     });
   });
+
+  // Optional: Add server-level health check endpoint
+  setInterval(() => {
+    const activeCount = io.sockets.sockets.size;
+    if (activeCount > 0) {
+      console.log(`📊 Active connections: ${activeCount}`);
+    }
+  }, 30000); // Every 30 seconds
 }

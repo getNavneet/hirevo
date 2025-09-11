@@ -1,10 +1,10 @@
-//this file code allings with the condition that transcription will happen at frontend level and directly transcription will be provided with will be passed to LLM for transcription
-
+import { createSpeechStream } from "../services/sst/speechHandlerGoogle.js";
 import {
   initializeInterviewFromDB,
   processResponseAndGenerateNext,
   addResponseToSession,
 } from "../services/questionGeneration/index.dbintegration.js";
+// import { synthesizeSpeech } from "../services/tts/ttsHandlerOpenai.js";
 import { synthesizeSpeech } from "../services/tts/ttsHandlerGoogle.js";
 
 async function processTranscript(socket, finalText) {
@@ -66,6 +66,8 @@ export async function InterviewSocket(server) {
   io.on("connection", (socket) => {
     console.log(`[${socket.id}] connected to server`);
 
+    let speechStream = null;
+
     // 🔹 Client sends sessionId to join interview
     socket.on("joinInterview", async ({ sessionId }) => {
       try {
@@ -86,6 +88,7 @@ export async function InterviewSocket(server) {
         console.log(`[${socket.id}] Joined interview: ${sessionId}`);
 
         // Now, generate the first question immediately after joining
+        // We call processResponseAndGenerateNext with no response to get the first question
         const result = await processResponseAndGenerateNext(
           socket.workflowSession,
           null,
@@ -95,7 +98,7 @@ export async function InterviewSocket(server) {
         if (result.type === "continue") {
           // Update the session state on the socket and send the question to the client
           socket.workflowSession = result.updatedSession;
-
+          
           const audioBuffer = await synthesizeSpeech(
             result.nextQuestion.question
           );
@@ -105,6 +108,7 @@ export async function InterviewSocket(server) {
             question: result.nextQuestion.question,
             audioData: audioBuffer.toString("base64"), // Convert Buffer to Base64
           });
+          //here we can send text(result.nextQuestion.question) to tts service which will stream the audio directly to frontend
         } else {
           // Handle potential errors from the workflow
           console.error(
@@ -121,22 +125,86 @@ export async function InterviewSocket(server) {
       }
     });
 
+    // 🔹 Start speech recognition with callbacks
+   socket.on("startSpeechRecognition", () => {
+  try {
+    console.log(`[${socket.id}] 🎙️ Starting speech recognition`);
+
+    // Clean up previous stream if it exists
+    if (speechStream) {
+      speechStream.endStream();
+      speechStream = null;
+    }
+
+    // Create a new stream
+    speechStream = createSpeechStream({
+      onPartialTranscript: (partialText) => {
+        socket.emit("partial-transcription", { text: partialText });
+      },
+      onFinalTranscript: async (finalText) => {
+        socket.emit("transcription", { text: finalText });
+      },
+      onError: (error, message) => {
+        console.error(`[${socket.id}] Speech error:`, error);
+        socket.emit("transcription-error", message);
+      },
+      onStreamStart: () => {
+        socket.emit("speechRecognitionStarted");
+      },
+      onStreamEnd: async (completeTranscript) => {
+        socket.emit("transcriptionComplete", { text: completeTranscript });
+      },
+    });
+
+    const started = speechStream.startStream();
+    if (!started) {
+      socket.emit("transcription-error", "Failed to start speech recognition");
+    }
+  } catch (err) {
+    console.error(`[${socket.id}] Error starting speech recognition:`, err);
+    socket.emit("transcription-error", "Failed to start speech recognition");
+  }
+});
+
+    // 🔹 Receive audio chunks
+    socket.on("audioChunk", (audioData) => {
+      if (speechStream && speechStream.isActive()) {
+        const chunk = Buffer.from(audioData);
+        speechStream.writeAudio(chunk);
+      } else {
+        console.warn(
+          `[${socket.id}] Received audio chunk but no active stream`
+        );
+      }
+    });
+
     // 🔹 Receive the final, complete response from the client
     socket.on("completeResponse", async (data) => {
-      console.log(
-        `[${socket.id}] 📝 Final transcript received: ${data.finalText || "EMPTY"}`
-      );
-      if (!data.finalText || !data.finalText.trim()) {
-        console.warn(`[${socket.id}] Empty transcript received`);
-        socket.emit("error", { message: "Empty response received. Please try again." });
-        return;
-      }
+      console.log(`[${socket.id}] 👆 User sent complete response`);
       await processTranscript(socket, data.finalText);
+    });
+
+    // 🔹 Stop speech recognition
+    socket.on("stopSpeechRecognition", () => {
+      console.log(`[${socket.id}] 🛑 Stopping speech recognition`);
+
+      if (speechStream) {
+        speechStream.endStream();
+        speechStream = null;
+      }
+
+      socket.emit("speechRecognitionStopped");
     });
 
     // 🔹 Cleanup on disconnect
     socket.on("disconnect", () => {
       console.log(`[${socket.id}] disconnected`);
+
+      if (speechStream) {
+        speechStream.endStream();
+        speechStream = null;
+      }
+
       // Clean up the session context from the socket
       if (socket.workflowSession) {
         socket.workflowSession = null;

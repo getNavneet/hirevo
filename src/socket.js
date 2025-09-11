@@ -1,3 +1,5 @@
+//depricted not in use
+
 let io;
 
 export const initSocket = async(server) => {

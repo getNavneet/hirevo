@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 import { createServer } from "http";
 // import { InterviewSocket } from "./sockets/interviewSocket.js";
 //handles all the interview sockets
-import { InterviewSocket } from "./sockets/interviewSocket.webspeech.js";
+import { InterviewSocket } from "./sockets/interviewSocket.newStream.js";
 dotenv.config();
 
 const PORT = process.env.PORT || 8000;
