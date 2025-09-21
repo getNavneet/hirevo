@@ -167,27 +167,26 @@ export async function InterviewSocket(server) {
 });
 
     // 🔹 Receive audio chunks
-    // socket.on("audioChunk", (audioData) => {
-    //   if (speechStream && speechStream.isActive()) {
-    //     const chunk = Buffer.from(audioData);
-    //     speechStream.writeAudio(chunk);
-    //   } else {
-    //     console.warn(
-    //       `[${socket.id}] Received audio chunk but no active stream`
-    //     );
-    //   }
-    // });
-
     socket.on("audioChunk", (audioData) => {
-      console.log(`[${socket.id}] Received chunk size:`, audioData.byteLength);
+      if (speechStream && speechStream.isActive()) {
+        const chunk = Buffer.from(audioData);
+        speechStream.writeAudio(chunk);
+      } else {
+        console.warn(
+          `[${socket.id}] Received audio chunk but no active stream`
+        );
+      }
+    });
 
-  if (speechStream && speechStream.isActive()) {
-    const chunk = Buffer.from(new Uint8Array(audioData)); // convert arrayBuffer to Buffer
-    speechStream.writeAudio(chunk);
-  } else {
-    console.warn(`[${socket.id}] Received audio chunk but no active stream`);
-  }
-});
+//     socket.on("audioChunk", (audioData) => {
+
+//   if (speechStream && speechStream.isActive()) {
+//     const chunk = Buffer.from(new Uint8Array(audioData)); // convert arrayBuffer to Buffer
+//     speechStream.writeAudio(chunk);
+//   } else {
+//     console.warn(`[${socket.id}] Received audio chunk but no active stream`);
+//   }
+// });
 
 
     // 🔹 Receive the final, complete response from the client

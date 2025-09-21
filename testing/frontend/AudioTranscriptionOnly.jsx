@@ -1,4 +1,4 @@
-//this test file is working fine with the current stream file 'interviewSocket.newStream.js'
+// client/src/App.jsx
 import React, { useState, useEffect, useRef } from "react";
 import { io } from "socket.io-client";
 import "./App.css";
@@ -12,6 +12,7 @@ const App = () => {
     'Press "Start Recording" and begin speaking.'
   );
   const [transcription, setTranscription] = useState("");
+  const [partialTranscription, setPartialTranscription] = useState("");
 
   // Use refs for stable references to the socket and media recorder across re-renders.
   const socketRef = useRef(null);
@@ -23,11 +24,11 @@ const App = () => {
     });
 
     socketRef.current.on("partial-transcription", ({ text }) => {
-      setTranscription((prev) => prev + " " + text);
+      setPartialTranscription(text);
     });
 
     socketRef.current.on("transcription", ({ text }) => {
-      setTranscription(text);
+      setTranscription((prev) => prev + " " + text);
       setStatus("Press Start Recording to begin a new session.");
     });
 
@@ -85,6 +86,8 @@ const App = () => {
           if (socketRef.current) {
             socketRef.current.emit("stopSpeechRecognition");
           }
+          setPartialTranscription("");
+          setTranscription("");
           // The status is already set when the button is clicked.
           // We wait for the server to send back the transcription status.
         };
@@ -106,12 +109,16 @@ const App = () => {
       <div className="controls">
         <button
           onClick={handleToggleRecording}
-          disabled={status.includes("Waiting") || status.includes("Sending")}
         >
           {isRecording ? "Stop Recording" : "Start Recording"}
         </button>
       </div>
       <div id="status">{status}</div>
+      <hr />
+      <div id="partial-transcription">
+        <p>{partialTranscription || "partial transcription will appear here..."}</p>
+      </div>
+      <hr />
       <div id="transcription">
         <p>{transcription || "Transcription will appear here..."}</p>
       </div>

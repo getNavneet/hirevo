@@ -5,7 +5,7 @@ const ENHANCED_SPEECH_CONFIG = {
   encoding: 'WEBM_OPUS', // or 'LINEAR16' for better quality
   sampleRateHertz: 48000, // Higher sample rate for better quality
   languageCode: 'en-IN', // Indian English - adjust based on your region
-  alternativeLanguageCodes: ['en-US', 'en-GB'], // Fallback languages
+  // alternativeLanguageCodes: ['en-US', 'en-GB'], // Fallback languages
   
   // Enable advanced features for better accuracy
   enableAutomaticPunctuation: true,
@@ -22,36 +22,36 @@ const ENHANCED_SPEECH_CONFIG = {
   useEnhanced: true, // Use enhanced models (may cost more)
   
   // Adaptation and context
-  speechContexts: [{
-    phrases: [
-      // Technical terms commonly used in programming interviews
-      'JavaScript', 'Python', 'React', 'Node.js', 'database', 'API',
-      'algorithm', 'data structure', 'object oriented', 'function',
-      'variable', 'array', 'string', 'boolean', 'integer', 'framework',
-      'library', 'backend', 'frontend', 'full stack', 'debugging',
-      'testing', 'deployment', 'version control', 'Git', 'GitHub',
-      'SQL', 'NoSQL', 'MongoDB', 'Express', 'Angular', 'Vue',
-      'TypeScript', 'async', 'await', 'promise', 'callback',
-      'REST API', 'GraphQL', 'microservices', 'Docker', 'AWS',
-      // Common Indian names and terms
-      'Pradesh', 'Rajasthan', 'Mumbai', 'Delhi', 'Bangalore', 'Chennai',
-      'Hyderabad', 'Pune', 'Kolkata', 'Ahmedabad'
-    ],
-    boost: 20.0 // Higher boost for technical terms
-  }],
+  // speechContexts: [{
+  //   phrases: [
+  //     // Technical terms commonly used in programming interviews
+  //     'JavaScript', 'Python', 'React', 'Node.js', 'database', 'API',
+  //     'algorithm', 'data structure', 'object oriented', 'function',
+  //     'variable', 'array', 'string', 'boolean', 'integer', 'framework',
+  //     'library', 'backend', 'frontend', 'full stack', 'debugging',
+  //     'testing', 'deployment', 'version control', 'Git', 'GitHub',
+  //     'SQL', 'NoSQL', 'MongoDB', 'Express', 'Angular', 'Vue',
+  //     'TypeScript', 'async', 'await', 'promise', 'callback',
+  //     'REST API', 'GraphQL', 'microservices', 'Docker', 'AWS',
+  //     // Common Indian names and terms
+  //     'Pradesh', 'Rajasthan', 'Mumbai', 'Delhi', 'Bangalore', 'Chennai',
+  //     'Hyderabad', 'Pune', 'Kolkata', 'Ahmedabad'
+  //   ],
+  //   boost: 20.0 // Higher boost for technical terms
+  // }],
   
   // Profanity filter and content filtering
   profanityFilter: false, // Keep true responses
   
   // Metadata for better processing
-  metadata: {
-    interactionType: 'DISCUSSION', // Options: DISCUSSION, PRESENTATION, PHONE_CALL
-    industryNanosCode: 541511, // Software publishers
-    microphoneDistance: 'NEARFIELD', // NEARFIELD, MIDFIELD, FARFIELD
-    originalMediaType: 'AUDIO', 
-    recordingDeviceType: 'PC', // PC, PHONE, OUTDOOR
-    recordingDeviceName: 'Interview Microphone',
-  }
+  // metadata: {
+  //   interactionType: 'DISCUSSION', // Options: DISCUSSION, PRESENTATION, PHONE_CALL
+  //   industryNanosCode: 541511, // Software publishers
+  //   microphoneDistance: 'NEARFIELD', // NEARFIELD, MIDFIELD, FARFIELD
+  //   originalMediaType: 'AUDIO', 
+  //   recordingDeviceType: 'PC', // PC, PHONE, OUTDOOR
+  //   recordingDeviceName: 'Interview Microphone',
+  // }
 };
 
 
