@@ -112,7 +112,7 @@ function createSpeechStream(callbacks = {}) {
                 if (isFinal) {
                   transcribed += transcript + " ";
                   // it automatically create final when a small pause it there in a speech
-                  // Send individual final transcript
+                  // Send individual final transcript and this final is not the end of stream
                   onFinalTranscript(transcript);
                 } else {
                   // Send partial transcript for real-time feedback
@@ -164,7 +164,7 @@ function createSpeechStream(callbacks = {}) {
   }
 
   function endStream() {
-    console.log('🛑 Ending speech stream');
+    console.log('🛑 user called endStream() in speechhandler so Ending speech stream');
     
     const finalTranscript = transcribed.trim();
     

@@ -136,7 +136,7 @@ export async function InterviewSocket(server) {
       speechStream = null;
     }
 
-    // Create a new stream
+    // Create a new stream, calling function that returns startStream, stopStream, isActive
     speechStream = createSpeechStream({
       onPartialTranscript: (partialText) => {
         socket.emit("partial-transcription", { text: partialText });
@@ -167,16 +167,28 @@ export async function InterviewSocket(server) {
 });
 
     // 🔹 Receive audio chunks
+    // socket.on("audioChunk", (audioData) => {
+    //   if (speechStream && speechStream.isActive()) {
+    //     const chunk = Buffer.from(audioData);
+    //     speechStream.writeAudio(chunk);
+    //   } else {
+    //     console.warn(
+    //       `[${socket.id}] Received audio chunk but no active stream`
+    //     );
+    //   }
+    // });
+
     socket.on("audioChunk", (audioData) => {
-      if (speechStream && speechStream.isActive()) {
-        const chunk = Buffer.from(audioData);
-        speechStream.writeAudio(chunk);
-      } else {
-        console.warn(
-          `[${socket.id}] Received audio chunk but no active stream`
-        );
-      }
-    });
+      console.log(`[${socket.id}] Received chunk size:`, audioData.byteLength);
+
+  if (speechStream && speechStream.isActive()) {
+    const chunk = Buffer.from(new Uint8Array(audioData)); // convert arrayBuffer to Buffer
+    speechStream.writeAudio(chunk);
+  } else {
+    console.warn(`[${socket.id}] Received audio chunk but no active stream`);
+  }
+});
+
 
     // 🔹 Receive the final, complete response from the client
     socket.on("completeResponse", async (data) => {
@@ -186,7 +198,7 @@ export async function InterviewSocket(server) {
 
     // 🔹 Stop speech recognition
     socket.on("stopSpeechRecognition", () => {
-      console.log(`[${socket.id}] 🛑 Stopping speech recognition`);
+      console.log(`[${socket.id}]  Stopping speech recognition`);
 
       if (speechStream) {
         speechStream.endStream();

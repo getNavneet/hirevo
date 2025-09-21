@@ -5,6 +5,7 @@ import { createServer } from "http";
 // import { InterviewSocket } from "./sockets/interviewSocket.js";
 //handles all the interview sockets
 import { InterviewSocket } from "./sockets/interviewSocket.newStream.js";
+// import { InterviewSocket } from "./sockets/interviewSocket.webspeech.js";
 dotenv.config();
 
 const PORT = process.env.PORT || 8000;
@@ -19,7 +20,7 @@ connectDB()
     // initSocket(server);
     InterviewSocket(server);
 
-    server.listen(PORT, () => {
+    server.listen(PORT, '0.0.0.0', () => {
       console.log(`⚙️ Server is running at port : ${PORT}`);
     });
   })

@@ -130,7 +130,7 @@ export async function InterviewSocket(server) {
       try {
         console.log(`[${socket.id}] 🎙️ Starting speech recognition`);
 
-        // Create speech stream with callback functions
+        // Create speech stream with callback functions 
         speechStream = createSpeechStream({
           // Real-time partial transcripts
           onPartialTranscript: (partialText) => {
