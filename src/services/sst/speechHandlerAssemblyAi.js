@@ -1,22 +1,17 @@
-import WebSocket from 'ws';
-// const querystring = require("querystring");
-import querystring from "querystring";
+import { AssemblyAI } from 'assemblyai';
 
 const ENHANCED_SPEECH_CONFIG = {
-  // Audio configuration
-  sample_rate: 48000, // Higher sample rate for better quality
-  encoding: 'pcm_s16le', // PCM 16-bit little-endian (required format)
+  // Audio configuration - matching official SDK patterns
+  sampleRate: 48000, // Higher sample rate for better quality
   
   // Enhanced features for better accuracy
-  format_turns: true, // Enable text formatting
+  formatTurns: true, // Enable text formatting (matches SDK's formatTurns)
   
   // Voice agent optimization settings
-  min_end_of_turn_silence_when_confident: 560, // ms - good for multi-speaker scenarios
-  end_of_turn_confidence_threshold: 0.5, // 0.0 to 1.0
-  max_silence_before_end_of_turn: 2000, // ms
+  endUtteranceSilenceThreshold: 560, // ms - good for multi-speaker scenarios
   
-  // Word boost for technical terms
-  word_boost: [
+  // Word boost for technical terms (if supported in future)
+  wordBoost: [
     'javascript', 'python', 'react', 'nodejs', 'database', 'api',
     'algorithm', 'data structure', 'object oriented', 'function',
     'variable', 'array', 'string', 'boolean', 'integer', 'framework',
@@ -25,36 +20,30 @@ const ENHANCED_SPEECH_CONFIG = {
     'sql', 'nosql', 'mongodb', 'express', 'angular', 'vue',
     'typescript', 'async', 'await', 'promise', 'callback',
     'rest api', 'graphql', 'microservices', 'docker', 'aws'
-  ],
-  
-  // Additional parameters
-  disable_partial_transcripts: false // Enable real-time partial transcripts
-};
-const CONNECTION_PARAMS = {
-  sample_rate: 16000,
-  format_turns: true, // Request formatted final transcripts
+  ]
 };
 
 // You'll need to set your AssemblyAI API key
-// const ASSEMBLYAI_API_KEY = process.env.ASSEMBLYAI_API_KEY;
-const ASSEMBLYAI_API_KEY = 'd07d3cbf69fe439483254def94d20056';
+const ASSEMBLYAI_API_KEY = process.env.ASSEMBLYAI_API_KEY;
 
 if (!ASSEMBLYAI_API_KEY) {
   console.error('❌ ASSEMBLYAI_API_KEY environment variable is not set!');
   throw new Error('AssemblyAI API key is required');
 }
 
-// AssemblyAI WebSocket endpoint
-// const WEBSOCKET_URL = 'wss://api.assemblyai.com/v2/realtime/ws';
-const WEBSOCKET_URL = 'wss://streaming.assemblyai.com/v3/ws';
+// Create AssemblyAI client
+const client = new AssemblyAI({
+  apiKey: ASSEMBLYAI_API_KEY
+});
 
 function createSpeechStream(callbacks = {}) {
-  let socket = null;
+  let transcriber = null;
   let transcribed = "";
   let isStreamActive = false;
-  let isWebSocketReady = false;
+  let isTranscriberReady = false;
   let sessionId = null;
-  let audioQueue = []; // Queue audio chunks until WebSocket is ready
+  let audioQueue = []; // Queue audio chunks until transcriber is ready
+  let writerStream = null;
   
   // Destructure callbacks with defaults
   const {
@@ -72,125 +61,110 @@ function createSpeechStream(callbacks = {}) {
     }
 
     console.log('🎙️ Starting AssemblyAI speech recognition stream');
+    console.log('🔑 API Key configured:', !!ASSEMBLYAI_API_KEY);
+    console.log('📊 Sample rate:', ENHANCED_SPEECH_CONFIG.sampleRate);
     
     try {
       isStreamActive = true;
       transcribed = "";
       
-      // Create WebSocket connection to AssemblyAI with proper authentication
-      const websocketUrl = `${WEBSOCKET_URL}?${querystring.stringify(CONNECTION_PARAMS)}`;
-      
-      socket = new WebSocket(websocketUrl, {
-    headers: {
-      Authorization: ASSEMBLYAI_API_KEY,
-    },
-  });
-     
+      // Create streaming transcriber using official SDK
+      transcriber = client.streaming.transcriber({
+        sampleRate: ENHANCED_SPEECH_CONFIG.sampleRate,
+        formatTurns: ENHANCED_SPEECH_CONFIG.formatTurns,
+        // Add other configuration options as supported by SDK
+      });
 
-      socket.onopen = () => {
-        console.log('✅ AssemblyAI WebSocket connection opened');
-        isWebSocketReady = true;
-        
-        // Send configuration after connection opens
-        const config = {
-          sample_rate: ENHANCED_SPEECH_CONFIG.sample_rate,
-          encoding: ENHANCED_SPEECH_CONFIG.encoding,
-          format_turns: ENHANCED_SPEECH_CONFIG.format_turns,
-          min_end_of_turn_silence_when_confident: ENHANCED_SPEECH_CONFIG.min_end_of_turn_silence_when_confident,
-          end_of_turn_confidence_threshold: ENHANCED_SPEECH_CONFIG.end_of_turn_confidence_threshold,
-          max_silence_before_end_of_turn: ENHANCED_SPEECH_CONFIG.max_silence_before_end_of_turn,
-          disable_partial_transcripts: ENHANCED_SPEECH_CONFIG.disable_partial_transcripts
-        };
-        
-        // Add word_boost if available
-        // if (ENHANCED_SPEECH_CONFIG.word_boost && ENHANCED_SPEECH_CONFIG.word_boost.length > 0) {
-        //   config.word_boost = ENHANCED_SPEECH_CONFIG.word_boost;
-        // }
-        
-        // socket.send(querystring.stringify(config));
+      // Set up event handlers - matching official SDK patterns
+      transcriber.on("open", ({ id, sessionId: sid }) => {
+        console.log(`✅ AssemblyAI session opened with ID: ${id}`);
+        sessionId = id || sid;
+        isTranscriberReady = true;
         
         // Process any queued audio chunks
-        while (audioQueue.length > 0) {
-          const queuedChunk = audioQueue.shift();
-          writeAudioInternal(queuedChunk);
-        }
+        processQueuedAudio();
         
         onStreamStart();
-      };
+      });
 
-      socket.onmessage = (message) => {
+      transcriber.on("error", (error) => {
+        console.error('❌ AssemblyAI transcriber error:', error);
+        isStreamActive = false;
+        isTranscriberReady = false;
+        audioQueue = [];
+        onError(error, 'AssemblyAI transcriber error occurred');
+        cleanup();
+      });
+
+      transcriber.on("close", (code, reason) => {
+        console.log('🔒 AssemblyAI session closed:', code, reason);
+        isStreamActive = false;
+        isTranscriberReady = false;
+        audioQueue = [];
+        
+        if (code && code !== 1000) {
+          const errorMsg = getErrorMessage(code, reason);
+          onError(new Error(errorMsg), 'Session closed unexpectedly');
+        }
+      });
+
+      // Handle turn events (this is where we get transcriptions)
+      transcriber.on("turn", (turn) => {
         try {
-          const data = JSON.parse(message.data);
-          
-          if (data.error) {
-            console.error('AssemblyAI error:', data.error);
-            onError(new Error(data.error), 'AssemblyAI error occurred');
+          if (!turn.transcript || !turn.transcript.trim()) {
             return;
           }
 
-          if (data.message_type === 'SessionBegins') {
-            console.log('📝 AssemblyAI session began:', data.session_id);
-            sessionId = data.session_id;
-            
-          } else if (data.message_type === 'PartialTranscript') {
-            // Handle partial transcripts (real-time updates)
-            const transcript = data.text;
-            if (transcript && transcript.trim()) {
-              console.log(`📝 Partial Transcript: ${transcript}`);
-              onPartialTranscript(transcript);
-            }
-            
-          } else if (data.message_type === 'FinalTranscript') {
-            // Handle final transcripts (completed utterances)
-            const transcript = data.text;
-            if (transcript && transcript.trim()) {
-              console.log(`📝 Final Transcript: ${transcript}`);
-              transcribed += transcript + " ";
-              onFinalTranscript(transcript);
-            }
-            
-          } else if (data.message_type === 'SessionTerminated') {
-            console.log('🏁 AssemblyAI session terminated');
-            isStreamActive = false;
-            isWebSocketReady = false;
-            onStreamEnd(transcribed.trim());
-            
-          } else {
-            // Handle other message types (Turn events, etc.)
-            console.log('📨 Received message:', data.message_type, data);
-          }
+          const transcript = turn.transcript.trim();
+          console.log(`📝 Turn received: ${transcript}`);
+          console.log(`📊 Turn details:`, {
+            transcript: transcript,
+            words: turn.words?.length || 0,
+            confidence: turn.confidence,
+            is_final: turn.is_final
+          });
+
+          // Add to accumulated transcript
+          transcribed += transcript + " ";
+
+          // Send as final transcript (AssemblyAI turns are generally final)
+          onFinalTranscript(transcript);
           
-        } catch (dataErr) {
-          console.error('Error processing AssemblyAI data:', dataErr);
-          onError(dataErr, 'Error processing speech data');
+        } catch (turnErr) {
+          console.error('Error processing turn:', turnErr);
+          onError(turnErr, 'Error processing transcription turn');
         }
-      };
+      });
 
-      socket.onerror = (error) => {
-        console.error('AssemblyAI WebSocket error:', error);
-        isStreamActive = false;
-        isWebSocketReady = false;
-        audioQueue = []; // Clear queue on error
-        onError(error, 'AssemblyAI WebSocket error');
-        endStream();
-      };
-
-      socket.onclose = (event) => {
-        console.log('🔒 AssemblyAI WebSocket closed:', event.code, event.reason);
-        isStreamActive = false;
-        isWebSocketReady = false;
-        audioQueue = []; // Clear queue on close
-        
-        if (event.code === 4001) {
-          onError(new Error('Invalid AssemblyAI API key or authentication failed'), 'Authentication error - Please check your API key');
-        } else if (event.code === 4002) {
-          onError(new Error('Insufficient funds in AssemblyAI account'), 'Payment error - Please check your account balance');
-        } else if (event.code === 4000) {
-          onError(new Error('Sample rate must be a positive integer'), 'Invalid sample rate');
-        } else if (event.code !== 1000) { // Not a normal closure
-          onError(new Error(`WebSocket closed unexpectedly: ${event.code} ${event.reason}`), 'Connection closed');
+      // Handle partial transcripts if available
+      transcriber.on("transcript", (transcript) => {
+        try {
+          if (transcript && transcript.text && transcript.text.trim()) {
+            const text = transcript.text.trim();
+            console.log(`📝 Transcript: ${text} (confidence: ${transcript.confidence})`);
+            
+            if (transcript.message_type === 'PartialTranscript') {
+              onPartialTranscript(text);
+            } else if (transcript.message_type === 'FinalTranscript') {
+              transcribed += text + " ";
+              onFinalTranscript(text);
+            }
+          }
+        } catch (transcriptErr) {
+          console.error('Error processing transcript:', transcriptErr);
+          onError(transcriptErr, 'Error processing transcript');
         }
-      };
+      });
+
+      // Connect to AssemblyAI
+      console.log("📡 Connecting to AssemblyAI streaming service");
+      transcriber.connect().then(() => {
+        console.log("✅ Successfully connected to AssemblyAI");
+      }).catch((connectErr) => {
+        console.error("❌ Failed to connect to AssemblyAI:", connectErr);
+        isStreamActive = false;
+        onError(connectErr, 'Failed to connect to AssemblyAI');
+      });
 
       return true;
 
@@ -202,36 +176,48 @@ function createSpeechStream(callbacks = {}) {
     }
   }
 
+  function processQueuedAudio() {
+    if (!isTranscriberReady || !transcriber) {
+      return;
+    }
+
+    console.log(`📦 Processing ${audioQueue.length} queued audio chunks`);
+    while (audioQueue.length > 0) {
+      const queuedChunk = audioQueue.shift();
+      writeAudioInternal(queuedChunk);
+    }
+  }
+
   function writeAudioInternal(chunk) {
     try {
-      if (socket && socket.readyState === WebSocket.OPEN && isWebSocketReady) {
-        // AssemblyAI expects raw PCM audio data as base64
-        let audioData;
-        
-        if (Buffer.isBuffer(chunk)) {
-          // Convert PCM buffer to base64
-          audioData = chunk.toString('base64');
-        } else if (chunk instanceof ArrayBuffer) {
-          audioData = Buffer.from(chunk).toString('base64');
-        } else if (chunk instanceof Uint8Array) {
-          audioData = Buffer.from(chunk).toString('base64');
-        } else if (typeof chunk === 'string') {
-          // Assume it's already base64
-          audioData = chunk;
-        } else {
-          console.error('Unsupported audio chunk format:', typeof chunk);
-          return false;
-        }
-
-        // Send audio data in the format expected by AssemblyAI
-        socket.send(JSON.stringify({
-          audio_data: audioData
-        }));
-        
-        return true;
-      } else {
+      if (!transcriber || !isTranscriberReady) {
+        console.warn('❌ Transcriber not ready in writeAudioInternal');
         return false;
       }
+
+      // Get the writer stream if we don't have it yet
+      if (!writerStream) {
+        writerStream = transcriber.stream().getWriter();
+      }
+
+      // Convert chunk to appropriate format
+      let audioData;
+      
+      if (Buffer.isBuffer(chunk)) {
+        audioData = new Uint8Array(chunk);
+      } else if (chunk instanceof ArrayBuffer) {
+        audioData = new Uint8Array(chunk);
+      } else if (chunk instanceof Uint8Array) {
+        audioData = chunk;
+      } else {
+        console.error('Unsupported audio chunk format:', typeof chunk);
+        return false;
+      }
+
+      // Write to the stream
+      writerStream.write(audioData);
+      return true;
+      
     } catch (err) {
       console.error('Error sending audio chunk:', err);
       return false;
@@ -245,22 +231,33 @@ function createSpeechStream(callbacks = {}) {
         return false;
       }
 
-      if (isWebSocketReady && socket && socket.readyState === WebSocket.OPEN) {
-        // WebSocket is ready, send immediately
+      if (isTranscriberReady && transcriber) {
+        // Transcriber is ready, send immediately
         return writeAudioInternal(chunk);
       } else if (isStreamActive) {
-        // Stream is active but WebSocket not ready yet, queue the audio
-        console.log('⏳ Queueing audio chunk until WebSocket is ready');
+        // Stream is active but transcriber not ready yet, queue the audio
+        console.log('⏳ Queueing audio chunk until transcriber is ready');
         audioQueue.push(chunk);
         return true;
       } else {
-        console.warn('Attempted to write audio but WebSocket is not ready');
+        console.warn('Attempted to write audio but transcriber is not ready');
         return false;
       }
     } catch (err) {
       console.error('Error writing audio chunk:', err);
       onError(err, 'Error processing audio chunk');
       return false;
+    }
+  }
+
+  function cleanup() {
+    try {
+      if (writerStream) {
+        writerStream.close?.();
+        writerStream = null;
+      }
+    } catch (err) {
+      console.error('Error closing writer stream:', err);
     }
   }
 
@@ -271,25 +268,24 @@ function createSpeechStream(callbacks = {}) {
     
     // Cleanup
     isStreamActive = false;
-    isWebSocketReady = false;
-    audioQueue = []; // Clear any remaining queued audio
+    isTranscriberReady = false;
+    audioQueue = [];
 
     try {
-      if (socket && socket.readyState === WebSocket.OPEN) {
-        // Send terminate message to AssemblyAI
-        socket.send(JSON.stringify({
-          terminate_session: true
-        }));
+      if (transcriber) {
+        console.log('📤 Closing AssemblyAI transcriber');
         
-        // Give a small delay for the message to send, then close
-        setTimeout(() => {
-          if (socket) {
-            socket.close(1000, 'Stream ended by user');
-            socket = null;
-          }
-        }, 100);
-      } else {
-        socket = null;
+        // Close the writer stream first
+        cleanup();
+        
+        // Close the transcriber
+        transcriber.close().then(() => {
+          console.log('✅ AssemblyAI transcriber closed successfully');
+        }).catch((closeErr) => {
+          console.error('❌ Error closing AssemblyAI transcriber:', closeErr);
+        });
+        
+        transcriber = null;
       }
     } catch (err) {
       console.error('Error ending AssemblyAI stream:', err);
@@ -305,6 +301,19 @@ function createSpeechStream(callbacks = {}) {
 
   function isActive() {
     return isStreamActive;
+  }
+
+  function getErrorMessage(code, reason) {
+    switch (code) {
+      case 4001:
+        return 'Invalid AssemblyAI API key or authentication failed';
+      case 4002:
+        return 'Insufficient funds in AssemblyAI account';
+      case 4000:
+        return 'Invalid sample rate or configuration';
+      default:
+        return `Connection closed: ${code} ${reason}`;
+    }
   }
 
   return { 

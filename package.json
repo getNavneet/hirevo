@@ -16,6 +16,7 @@
     "@aws-sdk/lib-storage": "^3.879.0",
     "@google-cloud/speech": "^7.2.0",
     "@google-cloud/text-to-speech": "^6.3.0",
+    "assemblyai": "^4.16.1",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^17.2.1",
