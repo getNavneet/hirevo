@@ -2,20 +2,20 @@ import { SpeechClient } from '@google-cloud/speech';
 import stream from 'stream';
 
 const ENHANCED_SPEECH_CONFIG = {
-  encoding: 'WEBM_OPUS', // or 'LINEAR16' for better quality
+  encoding: 'WEBM_OPUS', //'WEBM_OPUS' or 'LINEAR16' for better quality
   sampleRateHertz: 48000, // Higher sample rate for better quality
   languageCode: 'en-IN', // Indian English - adjust based on your region
-  // alternativeLanguageCodes: ['en-US', 'en-GB'], // Fallback languages
+  // alternativeLanguageCodes: ['en-IN',en-US', 'en-GB'], // Fallback languages
   
   // Enable advanced features for better accuracy
   enableAutomaticPunctuation: true,
-  enableWordTimeOffsets: true,
-  enableWordConfidence: true,
+  // enableWordTimeOffsets: true,
+  // enableWordConfidence: true,
   enableSpeakerDiarization: false, // Turn on if multiple speakers
   
   // Audio enhancement features
-  audioChannelCount: 1,
-  enableSeparateRecognitionPerChannel: false,
+  // audioChannelCount: 1,
+  // enableSeparateRecognitionPerChannel: false,
   
   // Model selection for better accuracy
   model: 'latest_long', // Options: 'latest_long', 'latest_short', 'command_and_search'
