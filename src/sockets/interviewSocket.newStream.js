@@ -1,4 +1,5 @@
-import { createSpeechStream } from "../services/sst/speechHandlerGoogle.js";
+// import { createSpeechStream } from "../services/sst/speechHandlerGoogle.js";
+import { createSpeechStream } from "../services/sst/speechHandlerAssemblyAi.js";
 import {
   initializeInterviewFromDB,
   processResponseAndGenerateNext,
