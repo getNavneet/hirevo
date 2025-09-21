@@ -8,7 +8,7 @@ import { InterviewSocket } from "./sockets/interviewSocket.newStream.js";
 // import { InterviewSocket } from "./sockets/interviewSocket.webspeech.js";
 dotenv.config();
 
-const PORT = process.env.PORT || 8000;
+const PORT = process.env.PORT || 8002;
 
 connectDB()
   .then(() => {
