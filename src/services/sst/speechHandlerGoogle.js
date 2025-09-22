@@ -2,7 +2,7 @@ import { SpeechClient } from '@google-cloud/speech';
 import stream from 'stream';
 
 const ENHANCED_SPEECH_CONFIG = {
-  encoding: 'WEBM_OPUS', //'WEBM_OPUS' or 'LINEAR16' for better quality
+  encoding: 'LINEAR16', //'WEBM_OPUS' or 'LINEAR16' for better quality
   sampleRateHertz: 48000, // Higher sample rate for better quality
   languageCode: 'en-IN', // Indian English - adjust based on your region
   // alternativeLanguageCodes: ['en-IN',en-US', 'en-GB'], // Fallback languages
