@@ -14,14 +14,14 @@ export const useInterviewStore = create((set) => ({
   // totalQuestions: 5,
   // timeRemaining: 1800, // 30 minutes in seconds
   isRecording: false,
-
+  sessionID: null,
   // Actions
   setStep: (step) => set({ currentStep: step }),
   setCategory: (category) => set({ selectedCategory: category }),
   setSubcategory: (subcategory) => set({ selectedSubcategory: subcategory }),
   setLevel: (level) => set({ selectedLevel: level }),
   setResume: (resume) => set({ uploadedResume: resume }),
-
+  setSessionID: (id) => set({ sessionID: id }),
   startInterview: () =>
     set({
       currentStep: "interview",

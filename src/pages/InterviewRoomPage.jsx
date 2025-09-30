@@ -1,5 +1,5 @@
-// import InterviewRoom from "../components/InterviewRoom/InterviewRoom";
-import InterviewRoom from "../components/InterviewRoom.jsx";
+import InterviewRoom from "../components/interviewRoom2/index";
+// import InterviewRoom from "../components/InterviewRoom.jsx";
 // import InterviewRoom from "../components/InterviewRoom";
 import { useInterviewStore } from "../store/interview.store";
 function InterviewRoomPage() {

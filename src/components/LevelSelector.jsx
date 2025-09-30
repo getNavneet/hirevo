@@ -2,7 +2,7 @@ import react, {useState} from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { useInterviewStore } from "../store/interview.store";
-import { connectSocket, joinInterview } from '../lib/socket';
+// import { connectSocket, joinInterview } from '../lib/socket';
 import api from '../lib/axios';
 const levelsForProgrammingAndCore = [
   {
@@ -111,6 +111,7 @@ export default function LevelSelector({ onSelect, onBack, category }) {
       selectedCategory,
       selectedSubcategory,
       selectedLevel,
+      setSessionID,
     } = useInterviewStore()
 
 const handleConnect = async () => {
@@ -138,42 +139,9 @@ const handleConnect = async () => {
     console.log("Interview started:", res.data);
     const { sessionId } = res.data.data;
     console.log("Interview started with session ID:", sessionId);
-
-    // Connect to Socket.IO server
-    const socket = connectSocket();
-    
-    socket.on('connect', () => {
-      console.log('Connected to server');
-      let isConnected = true;
-      
-      // Join the interview room with session ID
-      joinInterview(sessionId);
-    });
-
-    socket.on('interviewReady', (data) => {
-      console.log('Interview is ready:', data);
-      // Navigate to interview room with session data
-      navigate('/interviewRoom', { 
-        state: { 
-          sessionId: data.sessionId,
-          firstQuestion: data.question,
-          firstAudio: data.audioData 
-        } 
-      });
-    });
-
-    socket.on('error', (error) => {
-      console.error('Socket error:', error);
-      setLoading(false);
-    });
-
-    socket.on('connect_error', (error) => {
-      console.error('Connection failed:', error);
-      setLoading(false);
-    });
-
-    // Initiate connection
-    socket.connect();
+    setSessionID(sessionId);
+    //now navigate to interview room where sockets connection will be stablished nad from here turn on the full screen mode 
+    navigate(`/interviewRoom/${sessionId}`);
 
   } catch (error) {
     console.error("Error starting interview:", error);

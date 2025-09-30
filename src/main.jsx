@@ -21,7 +21,7 @@ const router = createBrowserRouter(
       <Route path="about" element={<AboutPage />} />
       <Route path="getStarted" element={<GetStatredPage />} />
       <Route path="features" element={<FeaturesPage />} />
-      <Route path="interviewRoom" element={<InterviewRoomPage />} />
+      <Route path="interviewRoom/:sessionId" element={<InterviewRoomPage />} />
       
     </Route>
   )
