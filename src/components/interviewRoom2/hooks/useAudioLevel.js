@@ -1,23 +1,20 @@
 import { useEffect, useState, useRef } from 'react';
 
-export const useAudioLevel = (isRecording) => {
+export const useAudioLevel = (isRecording, existingStream = null) => {
   const [audioLevel, setAudioLevel] = useState(0);
   const audioContextRef = useRef(null);
   const analyserRef = useRef(null);
   const animationFrameRef = useRef(null);
-  const streamRef = useRef(null);
 
   useEffect(() => {
-    if (!isRecording) {
+    if (!isRecording || !existingStream) {
       setAudioLevel(0);
       return;
     }
 
     const initAudioLevel = async () => {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        streamRef.current = stream;
-
+        // Use existing stream instead of requesting a new one
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
         audioContextRef.current = audioContext;
 
@@ -26,7 +23,7 @@ export const useAudioLevel = (isRecording) => {
         analyser.smoothingTimeConstant = 0.8;
         analyserRef.current = analyser;
 
-        const source = audioContext.createMediaStreamSource(stream);
+        const source = audioContext.createMediaStreamSource(existingStream);
         source.connect(analyser);
 
         const bufferLength = analyser.frequencyBinCount;
@@ -46,7 +43,7 @@ export const useAudioLevel = (isRecording) => {
 
         updateLevel();
       } catch (err) {
-        console.error('Error initializing audio level monitor:', err);
+        console.error('[AudioLevel] Error initializing audio level monitor:', err);
       }
     };
 
@@ -56,14 +53,11 @@ export const useAudioLevel = (isRecording) => {
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
       }
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
-      }
       if (audioContextRef.current) {
         audioContextRef.current.close();
       }
     };
-  }, [isRecording]);
+  }, [isRecording, existingStream]);
 
   return audioLevel;
 };

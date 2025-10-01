@@ -21,13 +21,14 @@ import { InterviewComplete } from './components/InterviewComplete';
   const interviewSocket = useInterviewSocket();
 
   // Audio recorder with STT integration
-  const audioRecorder = useAudioRecorder((audioChunk) => {
-    sttSocket.sendAudioChunk(audioChunk);
-  });
-
+ const audioRecorder = useAudioRecorder((audioChunk) => {
+  sttSocket.sendAudioChunk(audioChunk);
+});
   // Audio level monitoring
-  const audioLevel = useAudioLevel(audioRecorder.isRecording);
-
+const audioLevel = useAudioLevel(
+  audioRecorder.isRecording,
+  audioRecorder.audioStream
+);
   // Initialize user webcam
   useEffect(() => {
     const initWebcam = async () => {
@@ -95,13 +96,46 @@ import { InterviewComplete } from './components/InterviewComplete';
     setCanRecord(true);
   };
 
-  const handleStartRecording = async () => {
-    if (!canRecord) return;
+//   const handleStartRecording = async () => {
+//     if (!canRecord) return;
     
+//     sttSocket.resetTranscripts();
+//     sttSocket.startRecognition();
+//     await audioRecorder.startRecording();
+//   };
+
+const handleStartRecording = async () => {
+  if (!canRecord) {
+    console.log('[Room] Cannot record - not ready');
+    return;
+  }
+  
+  console.log('[Room] Starting recording process...');
+  console.log('[Room] STT connected:', sttSocket.isConnected);
+  console.log('[Room] STT recognition active:', sttSocket.isRecognitionActive);
+  
+  try {
+    // Reset transcripts
     sttSocket.resetTranscripts();
+    
+    // Start STT recognition first
+    console.log('[Room] Starting STT recognition...');
     sttSocket.startRecognition();
+    
+    // Wait a moment for STT to be ready
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // Then start audio recording
+    console.log('[Room] Starting audio recording...');
     await audioRecorder.startRecording();
-  };
+    
+    console.log('[Room] Recording started successfully');
+  } catch (err) {
+    console.error('[Room] Error starting recording:', err);
+    setError(err.message);
+  }
+};
+
 
   const handleSendResponse = () => {
     const response = sttSocket.finalTranscript.trim();
