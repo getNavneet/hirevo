@@ -3,6 +3,7 @@ import { useRef, useState, useCallback, useEffect } from 'react';
 export const useAudioRecorder = (onAudioChunk) => {
   const mediaRecorderRef = useRef(null);
   const audioStreamRef = useRef(null);
+  const isStoppingRef = useRef(false);
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [error, setError] = useState(null);
@@ -13,15 +14,24 @@ export const useAudioRecorder = (onAudioChunk) => {
 
   useEffect(() => {
     return () => {
-      stopRecording();
+      if (!isStoppingRef.current && mediaRecorderRef.current) {
+        stopRecording();
+      }
       if (timerRef.current) clearInterval(timerRef.current);
       if (autoStopTimeoutRef.current) clearTimeout(autoStopTimeoutRef.current);
     };
   }, []);
 
   const startRecording = useCallback(async () => {
+    if (!onAudioChunk || typeof onAudioChunk !== 'function') {
+      console.error('[Audio] No valid onAudioChunk callback provided!');
+      setError('No audio callback configured');
+      return;
+    }
+
     try {
       setError(null);
+      isStoppingRef.current = false;
       console.log('[Audio] Requesting microphone access...');
       
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -37,79 +47,104 @@ export const useAudioRecorder = (onAudioChunk) => {
       console.log('[Audio] Microphone access granted');
       audioStreamRef.current = stream;
 
-      // Check browser support
       const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
         ? 'audio/webm;codecs=opus'
         : 'audio/webm';
       
       console.log('[Audio] Using MIME type:', mimeType);
 
-      mediaRecorderRef.current = new MediaRecorder(stream, {
+      const mediaRecorder = new MediaRecorder(stream, {
         mimeType,
         audioBitsPerSecond: 32000,
       });
 
-      mediaRecorderRef.current.ondataavailable = (event) => {
-        if (event.data.size > 0 && onAudioChunk) {
-          console.log('[Audio] Chunk available, size:', event.data.size);
+      let chunkCount = 0;
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0 && !isStoppingRef.current) {
+          chunkCount++;
+          console.log(`[Audio] Chunk #${chunkCount} available, size: ${event.data.size}`);
           
-          // Convert to ArrayBuffer then Uint8Array (same as working test component)
-          event.data.arrayBuffer().then((buffer) => {
-            const uint8Array = new Uint8Array(buffer);
-            onAudioChunk(uint8Array); // Send Uint8Array directly, not Array.from()
-          });
+          event.data.arrayBuffer()
+            .then((buffer) => {
+              const uint8Array = new Uint8Array(buffer);
+              console.log(`[Audio] Converted chunk #${chunkCount} to Uint8Array, length:`, uint8Array.length);
+              console.log('[Audio] Calling onAudioChunk callback...');
+              
+              try {
+                onAudioChunk(uint8Array);
+                console.log(`[Audio] Successfully sent chunk #${chunkCount}`);
+              } catch (callbackError) {
+                console.error('[Audio] Error in onAudioChunk callback:', callbackError);
+              }
+            })
+            .catch(err => {
+              console.error('[Audio] Error converting audio chunk:', err);
+            });
         }
       };
 
-      mediaRecorderRef.current.onerror = (event) => {
+      mediaRecorder.onerror = (event) => {
         console.error('[Audio] MediaRecorder error:', event.error);
         setError(event.error.message);
         stopRecording();
       };
 
-      mediaRecorderRef.current.onstart = () => {
+      mediaRecorder.onstart = () => {
         console.log('[Audio] MediaRecorder started');
         setIsRecording(true);
         setRecordingTime(0);
 
-        // Start recording timer
         timerRef.current = setInterval(() => {
           setRecordingTime(prev => prev + 1);
         }, 1000);
 
-        // Auto-stop after 40 seconds
         autoStopTimeoutRef.current = setTimeout(() => {
           console.log('[Audio] Auto-stopping recording after 40 seconds');
           stopRecording();
         }, AUTO_STOP_DELAY);
       };
 
-      mediaRecorderRef.current.onstop = () => {
+      mediaRecorder.onstop = () => {
         console.log('[Audio] MediaRecorder stopped');
       };
 
-      // Start recording with 250ms chunks (same as working test)
-      mediaRecorderRef.current.start(250);
+      mediaRecorderRef.current = mediaRecorder;
+      mediaRecorder.start(250);
       console.log('[Audio] Recording started with 250ms chunks');
 
     } catch (err) {
       console.error('[Audio] Error starting recording:', err);
       setError(err.message);
       setIsRecording(false);
+      isStoppingRef.current = false;
     }
-  }, [onAudioChunk]);
+  }, [onAudioChunk]); // Keep dependency
 
   const stopRecording = useCallback(() => {
+    if (isStoppingRef.current) {
+      console.log('[Audio] Already stopping, ignoring duplicate stop call');
+      return;
+    }
+    
+    isStoppingRef.current = true;
     console.log('[Audio] Stopping recording...');
     
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-      mediaRecorderRef.current.stop();
+      try {
+        mediaRecorderRef.current.stop();
+      } catch (err) {
+        console.error('[Audio] Error stopping MediaRecorder:', err);
+      }
     }
     
     if (audioStreamRef.current) {
       audioStreamRef.current.getTracks().forEach(track => {
-        track.stop();
-        console.log('[Audio] Stopped track:', track.kind);
+        try {
+          track.stop();
+        } catch (err) {
+          console.error('[Audio] Error stopping track:', err);
+        }
       });
       audioStreamRef.current = null;
     }
@@ -127,13 +162,17 @@ export const useAudioRecorder = (onAudioChunk) => {
     }
 
     console.log('[Audio] Recording stopped completely');
+    
+    setTimeout(() => {
+      isStoppingRef.current = false;
+    }, 100);
   }, []);
 
   return {
     isRecording,
     recordingTime,
     error,
-    audioStream: audioStreamRef.current, 
+    audioStream: audioStreamRef.current,
     startRecording,
     stopRecording,
   };

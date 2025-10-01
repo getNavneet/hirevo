@@ -21,9 +21,12 @@ import { InterviewComplete } from './components/InterviewComplete';
   const interviewSocket = useInterviewSocket();
 
   // Audio recorder with STT integration
- const audioRecorder = useAudioRecorder((audioChunk) => {
+ // Make sure this is correct:
+const audioRecorder = useAudioRecorder((audioChunk) => {
+  console.log('[Room] Audio chunk received, forwarding to STT, size:', audioChunk?.length);
   sttSocket.sendAudioChunk(audioChunk);
 });
+
   // Audio level monitoring
 const audioLevel = useAudioLevel(
   audioRecorder.isRecording,

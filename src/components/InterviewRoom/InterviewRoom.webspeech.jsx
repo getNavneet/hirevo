@@ -1,3 +1,5 @@
+//For TESTING only - read about web speech limitations in backend file
+
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {

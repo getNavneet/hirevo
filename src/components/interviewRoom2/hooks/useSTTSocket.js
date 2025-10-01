@@ -99,18 +99,25 @@ export const useSTTSocket = () => {
     }
   }, [isConnected]);
 
-  const sendAudioChunk = useCallback((audioData) => {
-    // Use ref instead of state in the check
-    if (socketRef.current && isConnected && isRecognitionActiveRef.current) {
-      socketRef.current.emit('audioChunk', audioData);
-    } else {
-      if (!isConnected) {
-        console.warn('[STT] Cannot send audio - not connected');
-      } else if (!isRecognitionActiveRef.current) {
-        console.warn('[STT] Cannot send audio - recognition not active (ref check)');
-      }
+ const sendAudioChunk = useCallback((audioData) => {
+  console.log('[STT] sendAudioChunk called with data length:', audioData?.length);
+  console.log('[STT] Socket connected:', !!socketRef.current);
+  console.log('[STT] isConnected:', isConnected);
+  console.log('[STT] isRecognitionActiveRef:', isRecognitionActiveRef.current);
+  
+  if (socketRef.current && isConnected && isRecognitionActiveRef.current) {
+    console.log('[STT] Emitting audioChunk to server');
+    socketRef.current.emit('audioChunk', audioData);
+  } else {
+    if (!socketRef.current) {
+      console.warn('[STT] Cannot send audio - no socket');
+    } else if (!isConnected) {
+      console.warn('[STT] Cannot send audio - not connected');
+    } else if (!isRecognitionActiveRef.current) {
+      console.warn('[STT] Cannot send audio - recognition not active');
     }
-  }, [isConnected]); // Remove isRecognitionActive from dependencies
+  }
+}, [isConnected]);
 
   const resetTranscripts = useCallback(() => {
     console.log('[STT] Resetting transcripts');
