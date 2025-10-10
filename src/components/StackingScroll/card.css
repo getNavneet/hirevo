@@ -4,10 +4,8 @@
   align-items: center;
   justify-content: center;
   position: sticky;
-  top: 0px;
+  top: 60px;  /* adjust according to header height */
 }
-
-
 
 .card {
   display: flex;
