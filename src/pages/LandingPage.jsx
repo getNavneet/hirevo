@@ -8,8 +8,14 @@ function LandingPage() {
   return (
     <div>
       <Hero/>
-      <Features/>
-      <StackingCards/>
+      <section className="py-24 bg-white">
+    <h2 className="text-center text-3xl sm:text-4xl font-bold mb-12">
+      What We Do
+    </h2>
+    <StackingCards />  // the stacking scroll component we built
+  </section>
+      {/* <Features/> */}
+      {/* <StackingCards/> */}
       <HowItWorks/>
       <Pricing/>
       <FAQ/>

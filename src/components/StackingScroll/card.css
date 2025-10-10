@@ -7,13 +7,15 @@
   top: 0px;
 }
 
+
+
 .card {
   display: flex;
   flex-direction: column;
   position: relative;
   top: -25%;
-  height: 500px;
-  width: 1000px;
+  height: 700px;
+  width: 1300px;
   max-width: 90vw;
   border-radius: 25px;
   padding: 50px;

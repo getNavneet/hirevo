@@ -12,9 +12,13 @@ const Card = ({ i, title, description, src, url, color, progress, range, targetS
 
   const imageScale = useTransform(scrollYProgress, [0, 1], [2, 1]);
   const scale = useTransform(progress, range, [1, targetScale]);
+  const titleOpacity = useTransform(scrollYProgress, [0, 0.1], [1, 0]);
+  const titleScale = useTransform(scrollYProgress, [0, 0.1], [1, 0.95]);
+
 
   return (
     <div ref={container} className="card-container">
+       
       <motion.div
         style={{
           backgroundColor: color,
@@ -29,7 +33,7 @@ const Card = ({ i, title, description, src, url, color, progress, range, targetS
             <p>{description}</p>
             <span className="link-container">
               <a href={url} target="_blank" rel="noopener noreferrer">
-                See more
+                See mores
               </a>
               <svg 
                 width="22" 
