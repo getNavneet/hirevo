@@ -13,7 +13,7 @@ const categories = [
     buttonText: "Select Language",
   },
   {
-    id: "cs",
+    id: "core",
     icon: "🧠",
     title: "Core CS Subjects",
     subtitle: "Data structures, algorithms, and computer science fundamentals",
@@ -87,7 +87,7 @@ function GetStartedPage() {
     if (currentStep === "subcategory") {
       setStep("category");
     } else if (currentStep === "level") {
-      if (selectedCategory == "programming" || selectedCategory == "cs") {
+      if (selectedCategory == "programming" || selectedCategory == "core") {
         setStep("subcategory");
       } else {
         setStep("category");
@@ -105,10 +105,10 @@ function GetStartedPage() {
           <div className="space-y-8">
             <div className="text-center space-y-4">
               <h2 className="text-3xl sm:text-4xl font-bold text-gray-900">
-                Choose Your Interview Type
+                What do you want to practice?
               </h2>
               <p className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto px-4">
-                Select the type of interview you'd like to practice. Each
+                Select the topic you'd like to practice. Each
                 category is designed to help you improve specific skills.
               </p>
             </div>

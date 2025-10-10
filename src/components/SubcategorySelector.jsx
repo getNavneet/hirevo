@@ -8,7 +8,7 @@ const subcategories = {
     { id: "react", name: "React", description: "Hooks, state management, components" },
     { id: "nodejs", name: "Node.js", description: "Express, APIs, async programming" },
   ],
-  cs: [
+  core: [
     { id: "dsa", name: "Data Structures & Algorithms", description: "Arrays, trees, graphs, sorting" },
     { id: "system-design", name: "System Design", description: "Scalability, databases, architecture" },
     { id: "os", name: "Operating Systems", description: "Processes, memory, file systems" },

@@ -91,7 +91,7 @@ const levelsForPersonal = [
 const getLevelsByCategory = (category) => {
   switch (category) {
     case "programming":
-    case "cs":
+    case "core":
       return levelsForProgrammingAndCore;
     case "resume":
       return levelsForResume;

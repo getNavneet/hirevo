@@ -160,7 +160,7 @@ const handleStartRecording = async () => {
   }
 
   const hasFinalTranscript = !!sttSocket.finalTranscript.trim();
-  const bothConnected = sttSocket.isConnected && interviewSocket.isConnected;  
+  const bothConnected = sttSocket.isConnected && interviewSocket.isConnected;
 
   return (
     <div className="relative w-screen h-screen overflow-hidden bg-gray-900">
@@ -421,8 +421,3 @@ const handleStartRecording = async () => {
   );
 };
 export default InterviewRoom;
-
-
-
-
-// now there are some edge cases i want to discuss like there should be a single send button means as soon as ai end speaking, start the stream and there should be only one send button which send the response and close the stream and if final transcription naot avialible waith for 2-3 second because sometimes user can click send as soon as they finish speaking but final transcription may not be avialbale
