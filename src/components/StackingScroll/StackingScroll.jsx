@@ -1,67 +1,63 @@
-const StackingCard = () => {
- const features = [
+import React, { useRef } from 'react';
+import { useScroll } from 'framer-motion';
+import Card from './Card';
+import './stackingscroll.css';
+
+const StackingCards = () => {
+  const container = useRef(null);
+  const { scrollYProgress } = useScroll({
+    target: container,
+    offset: ['start start', 'end end']
+  });
+
+  const projects = [
     {
       title: "AI-Powered Interviews",
-      description: "Practice with our advanced AI that adapts to your responses in real-time",
-      icon: "🎯",
-      gradient: "from-indigo-500 to-purple-600"
-    },
-    {
-      title: "Real-Time Feedback",
-      description: "Get instant analysis on your answers, body language, and communication skills",
-      icon: "⚡",
-      gradient: "from-purple-500 to-pink-600"
+      description: "Master your interview skills with our advanced AI that adapts to your responses in real-time. Get instant feedback on your answers, body language, and communication style. Practice unlimited times until you feel confident and ready.",
+      src: "interview-mockup.jpg",
+      url: "https://yourapp.com/interviews",
+      color: "#5f57ff"
     },
     {
       title: "Resume Analysis",
-      description: "AI-powered resume scoring with actionable insights to improve your profile",
-      icon: "📊",
-      gradient: "from-pink-500 to-rose-600"
+      description: "Upload your resume and receive comprehensive AI-powered scoring with actionable insights. Our system analyzes formatting, keywords, achievements, and overall impact to help you stand out from the competition.",
+      src: "resume-mockup.jpg",
+      url: "https://yourapp.com/resume",
+      color: "#8c52ff"
     },
     {
-      title: "Track Your Progress",
-      description: "Monitor improvement over time with detailed analytics and performance metrics",
-      icon: "📈",
-      gradient: "from-rose-500 to-orange-600"
+      title: "Leaderboards & Challenges",
+      description: "Rise in the ranks by putting in the work. Our point system is based on dedication, not scores. Compete with peers, earn badges, and track your progress as you prepare for your dream role.",
+      src: "leaderboard-mockup.jpg",
+      url: "https://yourapp.com/leaderboard",
+      color: "#d946ef"
+    },
+    {
+      title: "Progress Tracking",
+      description: "Monitor your improvement over time with detailed analytics and performance metrics. Visualize your strengths, identify areas for improvement, and watch your confidence grow with every practice session.",
+      src: "progress-mockup.jpg",
+      url: "https://yourapp.com/progress",
+      color: "#f43f5e"
     }
   ];
 
   return (
-    <section className="relative bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 py-20">
-        <h2 className="text-4xl font-bold text-center mb-16">
-          Everything You Need to Succeed
-        </h2>
-        
-        <div className="relative">
-          {features.map((feature, index) => (
-            <div
-              key={index}
-              className="sticky mb-8"
-              style={{
-                top: `${index * 2}rem`,
-                marginTop: index === 0 ? 0 : '50vh',
-              }}
-            >
-              <div 
-                className={`rounded-3xl bg-gradient-to-br ${feature.gradient} p-8 shadow-2xl transform transition-transform duration-300`}
-                style={{
-                  transformOrigin: 'top center',
-                }}
-              >
-                <div className="text-6xl mb-4">{feature.icon}</div>
-                <h3 className="text-3xl font-bold text-white mb-3">
-                  {feature.title}
-                </h3>
-                <p className="text-lg text-white/90">
-                  {feature.description}
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
+    <main ref={container} className="stacking-main">
+      {projects.map((project, i) => {
+        const targetScale = 1 - ((projects.length - i) * 0.05);
+        return (
+          <Card 
+            key={`card_${i}`}
+            i={i} 
+            {...project} 
+            progress={scrollYProgress} 
+            range={[i * 0.25, 1]} 
+            targetScale={targetScale}
+          />
+        );
+      })}
+    </main>
   );
 };
-export default StackingCard;
+
+export default StackingCards;
