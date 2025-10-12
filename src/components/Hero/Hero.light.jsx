@@ -1,42 +1,41 @@
 import { motion } from "framer-motion";
 import { Sparkles, Mic, Brain, ArrowRight } from "lucide-react";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 
 function HeroLight() {
   const navigate = useNavigate();
   return (
     <section className="relative flex items-center justify-center min-h-screen pt-20 lg:pt-16 bg-gray-50 text-gray-800 overflow-hidden">
-      
       {/* Modern animated background for light mode */}
       <div className="absolute inset-0">
         {/* Animated grid pattern */}
-        <motion.div 
+        <motion.div
           className="absolute inset-0 opacity-50"
-          animate={{ 
-            backgroundPosition: ['0px 0px', '50px 50px'],
+          animate={{
+            backgroundPosition: ["0px 0px", "50px 50px"],
           }}
-          transition={{ 
-            duration: 20, 
-            repeat: Infinity, 
-            ease: "linear" 
+          transition={{
+            duration: 20,
+            repeat: Infinity,
+            ease: "linear",
           }}
           style={{
             backgroundImage: `
               linear-gradient(rgba(129, 140, 248, 0.15) 1px, transparent 1px),
               linear-gradient(90deg, rgba(129, 140, 248, 0.15) 1px, transparent 1px)
             `,
-            backgroundSize: '50px 50px'
+            backgroundSize: "50px 50px",
           }}
         />
-        
+
         {/* Animated particles */}
         {[...Array(8)].map((_, i) => (
           <motion.div
             key={i}
             className="absolute w-1 h-1 bg-indigo-300/60 rounded-full"
             style={{
-              left: `${5 + (i * 11)}%`,
-              top: `${15 + (i * 10)}%`,
+              left: `${5 + i * 11}%`,
+              top: `${15 + i * 10}%`,
             }}
             animate={{
               y: [-20, -100, -20],
@@ -44,93 +43,93 @@ function HeroLight() {
               scale: [0.5, 1, 0.5],
             }}
             transition={{
-              duration: 4 + (i * 0.5),
+              duration: 4 + i * 0.5,
               repeat: Infinity,
               ease: "easeInOut",
               delay: i * 0.8,
             }}
           />
         ))}
-        
+
         {/* Floating orbs with adjusted opacity for light mode */}
         <motion.div
           className="absolute top-1/4 left-1/4 w-20 h-20 sm:w-32 sm:h-32 bg-indigo-400/10 rounded-full blur-2xl"
-          animate={{ 
-            x: [0, 40, -20, 0], 
+          animate={{
+            x: [0, 40, -20, 0],
             y: [0, -30, 15, 0],
             scale: [1, 1.2, 0.9, 1],
-            rotate: [0, 180, 360]
+            rotate: [0, 180, 360],
           }}
-          transition={{ 
-            duration: 15, 
-            repeat: Infinity, 
-            ease: "easeInOut" 
+          transition={{
+            duration: 15,
+            repeat: Infinity,
+            ease: "easeInOut",
           }}
         />
-        
+
         <motion.div
           className="absolute top-3/4 right-1/3 w-16 h-16 sm:w-24 sm:h-24 bg-cyan-300/10 rounded-full blur-xl"
-          animate={{ 
-            x: [0, -35, 18, 0], 
+          animate={{
+            x: [0, -35, 18, 0],
             y: [0, 25, -12, 0],
             scale: [1, 0.8, 1.3, 1],
-            rotate: [0, -120, -240, -360]
+            rotate: [0, -120, -240, -360],
           }}
-          transition={{ 
-            duration: 12, 
-            repeat: Infinity, 
+          transition={{
+            duration: 12,
+            repeat: Infinity,
             ease: "easeInOut",
-            delay: 2
+            delay: 2,
           }}
         />
-        
+
         <motion.div
           className="absolute bottom-1/4 left-3/4 w-14 h-14 sm:w-20 sm:h-20 bg-purple-400/10 rounded-full blur-lg"
-          animate={{ 
-            x: [0, 30, -15, 0], 
+          animate={{
+            x: [0, 30, -15, 0],
             y: [0, -40, 20, 0],
             scale: [1, 1.4, 0.7, 1],
-            rotate: [0, 90, 180, 270, 360]
+            rotate: [0, 90, 180, 270, 360],
           }}
-          transition={{ 
-            duration: 18, 
-            repeat: Infinity, 
+          transition={{
+            duration: 18,
+            repeat: Infinity,
             ease: "easeInOut",
-            delay: 4
+            delay: 4,
           }}
         />
-        
+
         {/* Additional smaller orbs */}
         <motion.div
           className="absolute top-1/2 right-1/4 w-10 h-10 sm:w-16 sm:h-16 bg-pink-300/10 rounded-full blur-lg"
-          animate={{ 
-            x: [0, -25, 12, 0], 
+          animate={{
+            x: [0, -25, 12, 0],
             y: [0, 20, -28, 0],
-            scale: [1, 1.1, 0.9, 1]
+            scale: [1, 1.1, 0.9, 1],
           }}
-          transition={{ 
-            duration: 9, 
-            repeat: Infinity, 
+          transition={{
+            duration: 9,
+            repeat: Infinity,
             ease: "easeInOut",
-            delay: 1
+            delay: 1,
           }}
         />
-        
+
         <motion.div
           className="absolute top-1/3 left-1/2 w-8 h-8 sm:w-12 sm:h-12 bg-yellow-300/10 rounded-full blur-md"
-          animate={{ 
-            x: [0, 20, -12, 0], 
+          animate={{
+            x: [0, 20, -12, 0],
             y: [0, -15, 25, 0],
-            scale: [1, 0.8, 1.2, 1]
+            scale: [1, 0.8, 1.2, 1],
           }}
-          transition={{ 
-            duration: 11, 
-            repeat: Infinity, 
+          transition={{
+            duration: 11,
+            repeat: Infinity,
             ease: "easeInOut",
-            delay: 3
+            delay: 3,
           }}
         />
-        
+
         {/* Subtle gradient overlay for light mode */}
         <div className="absolute inset-0 bg-gradient-to-tr from-white via-indigo-50/20 to-cyan-50/20" />
       </div>
@@ -155,10 +154,13 @@ function HeroLight() {
             >
               <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 text-indigo-500" />
             </motion.div>
-            <span className="whitespace-nowrap">AI-Powered Interview Practice</span>
+            <span className="whitespace-nowrap">
+              AI-Powered Interview Practice
+            </span>
           </motion.div>
 
-         {/* Main heading with staggered animation */}
+          {/* Main heading with staggered animation */}
+      {/* Main heading with staggered animation */}
           <motion.h1
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -171,7 +173,7 @@ function HeroLight() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 0.6 }}
             >
-              Practice Until Perfect
+              Don't Just Practice.
             </motion.span>
             <motion.span 
               className="block bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-cyan-500 to-purple-500"
@@ -179,7 +181,7 @@ function HeroLight() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 0.8 }}
             >
-              Feels Easy.
+              Perform.
             </motion.span>
           </motion.h1>
 
@@ -190,8 +192,10 @@ function HeroLight() {
             transition={{ duration: 0.6, delay: 1 }}
             className="text-sm sm:text-base md:text-lg lg:text-xl text-gray-500 max-w-3xl mx-auto leading-relaxed mb-6 sm:mb-8 lg:mb-10 px-4"
           >
-            Master your interview skills with our AI coach. Get smart, role-specific questions and instant feedback to turn rigorous practice into a confident, seamless performance.
+            Interview practice that adapts to you, helping you build confidence and land your dream job.
           </motion.p>
+
+
           {/* CTA Buttons */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -202,7 +206,7 @@ function HeroLight() {
             <motion.button
               whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.98 }}
-              onClick={() => navigate('/GetStarted')}
+              onClick={() => navigate("/GetStarted")}
               className="group w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2 transition-all duration-300 relative overflow-hidden"
             >
               <motion.div
@@ -221,7 +225,7 @@ function HeroLight() {
                 <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
               </motion.div>
             </motion.button>
-            
+
             <motion.button
               whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.98 }}
@@ -246,7 +250,11 @@ function HeroLight() {
             >
               <motion.div
                 animate={{ y: [0, 12, 0], opacity: [1, 0, 1] }}
-                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
                 className="w-0.5 h-2 sm:w-1 sm:h-3 bg-gray-400 rounded-full mt-1 sm:mt-2"
               />
             </motion.div>
