@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Sparkles, Mic, Brain, ArrowRight } from "lucide-react";
+import { Sparkles, Mic, ClipboardCheck, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 function HeroLight() {
@@ -160,7 +160,6 @@ function HeroLight() {
           </motion.div>
 
           {/* Main heading with staggered animation */}
-      {/* Main heading with staggered animation */}
           <motion.h1
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -197,7 +196,7 @@ function HeroLight() {
 
 
           {/* CTA Buttons */}
-          <motion.div
+         <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 1.2 }}
@@ -207,10 +206,10 @@ function HeroLight() {
               whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => navigate("/GetStarted")}
-              className="group w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2 transition-all duration-300 relative overflow-hidden"
+              className="group w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2 transition-all duration-300 relative overflow-hidden"
             >
               <motion.div
-                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                className="absolute inset-0 bg-gradient-to-r from-indigo-500 via-cyan-500 to-purple-500"
                 initial={{ x: "-100%" }}
                 whileHover={{ x: "100%" }}
                 transition={{ duration: 0.6 }}
@@ -229,10 +228,12 @@ function HeroLight() {
             <motion.button
               whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.98 }}
+              // NOTE: Add your navigation handler here, e.g., onClick={() => navigate("/ScoreResume")}
               className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 rounded-2xl bg-white hover:bg-gray-100 text-gray-700 font-semibold border border-gray-300 shadow-sm flex items-center justify-center gap-2 transition-all duration-300"
             >
-              <Brain className="w-4 h-4 sm:w-5 sm:h-5" />
-              Get your resume scored
+              {/* UPDATED ICON: ClipboardCheck for document/score signal */}
+              <ClipboardCheck className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600" />
+              Score My Resume
             </motion.button>
           </motion.div>
 
