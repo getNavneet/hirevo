@@ -1,0 +1,71 @@
+import crypto from 'crypto';
+import { uploadToS3 } from '../utils/uploadToS3.js';
+import InterviewSession from '../models/interviewsession.model.js';
+import { extractResumeText } from '../utils/resumeTextExtractor.js';
+
+
+function getSessionId() {
+  return crypto.randomBytes(16).toString('hex');
+}
+
+const startInterview = async (req, res) => {
+  try {
+    const { category, subcategory, level } = req.body;
+    const sessionId = getSessionId();
+    // Check if resume file is uploaded
+    let resumeFile = null;
+    let resumeUrl = "";
+    let resumeText = "";
+    if (req.files && req.files.resume && req.files.resume[0]) {
+      resumeFile = req.files.resume[0]; // contains buffer, mimetype, etc.
+     
+      resumeText = await extractResumeText(resumeFile.path, resumeFile.mimetype);
+    
+  
+      //here upload to aws
+
+      resumeUrl= await uploadToS3(resumeFile.path ,"Resumes");
+    }
+
+
+    // Example payload you might send to AI/interview service
+    const payload = {
+      sessionId,
+      category,
+      subcategory, 
+      level,
+      resumeText,
+      resume: resumeUrl || "", // or save file path in DB
+    };
+
+     const newSession =await InterviewSession.create(payload);
+     const createdSession=await InterviewSession.findById(newSession._id).select("-resumeText");
+
+
+
+
+
+    //TODO fullfill this request and here call a function which will handle the interview process through the socket connection like sending and receiving messages.
+      
+
+    //TODO indenfidy user if logged in and save this data in there database
+
+
+
+    // Send success response
+    res.status(200).json({
+      success: true,
+      message: "Interview initialized successfully",
+      data: createdSession,
+    });
+  } catch (error) {
+    console.error("Error starting interview:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+
+
+export {
+    startInterview
+}
