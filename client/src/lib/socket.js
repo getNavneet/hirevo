@@ -3,7 +3,7 @@ import { io } from 'socket.io-client';
 let socket = null;
 let isConnected = false;
 
-export const connectSocket = (serverUrl = 'http://localhost:8000') => {
+export const connectSocket = (serverUrl = 'http://localhost:8001') => {
   if (!socket) {
     socket = io(serverUrl, {
       transports: ['websocket'],

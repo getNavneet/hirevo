@@ -1,0 +1,73 @@
+name: hirevo-dev
+
+services:
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: backend-container
+    ports:
+      - "8080:8080"
+    env_file:
+      - ./server/.env
+    volumes:
+      - ./server:/app
+      - /app/node_modules  # <--- this line keeps node_modules inside container
+    depends_on:
+      - mongodb
+    networks:
+      - dev-net
+
+  stt-server:
+    build:
+      context: ./stt-server
+      dockerfile: Dockerfile
+    container_name: stt-server-container
+    ports:
+      - "8001:8001"
+    env_file:
+      - ./stt-server/.env
+    volumes:
+      - ./stt-server:/app
+      - /app/node_modules  # <--- this line keeps node_modules inside container
+    depends_on:
+      - mongodb
+    networks:
+      - dev-net
+
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: frontend-container
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./client:/app
+      - /app/node_modules  # <--- this line keeps node_modules inside container
+    depends_on:
+      - server
+    networks:
+      - dev-net
+
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb-container
+    restart: always
+    ports:
+      - "27017:27017"  
+    volumes:
+      - mongo-data:/data/db
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=mongoUser
+      - MONGO_INITDB_ROOT_PASSWORD=mongoPass
+    networks:
+      - dev-net
+
+
+volumes:
+  mongo-data:
+  redis-data:
+
+networks:
+  dev-net:
