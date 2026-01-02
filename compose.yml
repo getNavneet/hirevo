@@ -53,11 +53,10 @@ services:
   mongodb:
     image: mongo:latest
     container_name: mongodb-container
-    restart: always
     ports:
-      - "27017:27017"  
+      - "27018:27017"  
     volumes:
-      - mongo-data:/data/db
+      - mongo-data-hirevo:/data/db
     environment:
       - MONGO_INITDB_ROOT_USERNAME=mongoUser
       - MONGO_INITDB_ROOT_PASSWORD=mongoPass
@@ -66,8 +65,7 @@ services:
 
 
 volumes:
-  mongo-data:
-  redis-data:
+  mongo-data-hirevo:
 
 networks:
   dev-net:

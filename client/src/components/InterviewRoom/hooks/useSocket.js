@@ -13,7 +13,7 @@ export const useSocket = () => {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const socketInstance = connectSocket('http://localhost:8000');
+    const socketInstance = connectSocket('http://localhost:8001');
     setSocket(socketInstance);
     setupBackendStateTracking();
     

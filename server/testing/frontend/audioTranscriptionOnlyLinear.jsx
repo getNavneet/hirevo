@@ -17,7 +17,7 @@ const App = () => {
   const streamRef = useRef(null);
 
   useEffect(() => {
-    socketRef.current = io("http://localhost:8000", {
+    socketRef.current = io("http://localhost:8001", {
       transports: ["websocket"],
     });
 

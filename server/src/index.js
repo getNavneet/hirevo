@@ -8,7 +8,7 @@ import { InterviewSocket } from "./sockets/interviewSocket.newStream.js";
 // import { InterviewSocket } from "./sockets/interviewSocket.webspeech.js";
 dotenv.config();
 
-const PORT = process.env.PORT || 8000;
+const PORT = process.env.PORT || 8080;
 
 connectDB()
   .then(() => {
@@ -16,7 +16,7 @@ connectDB()
 
     // init socket
     //Your backend is always listening for socket connections.
-    // The frontend (React app) can connect at any time via io("http://localhost:8000") and the backend will accept that connection.
+    // The frontend (React app) can connect at any time via io("http://localhost:8001") and the backend will accept that connection.
     // initSocket(server);
     InterviewSocket(server);
 

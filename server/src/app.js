@@ -21,4 +21,9 @@ import interviewRoute from './routes/interview.route.js'
 //routes declaration
 app.use('/api/v1/user', interviewRoute); 
 
+
+app.use('/health', (req, res) => {
+    res.status(200).send('Server is healthy');
+});
+
 export { app } 

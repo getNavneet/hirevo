@@ -33,7 +33,7 @@ const InterviewRoom = () => {
   }, []);
 
   const initializeSocket = () => {
-    const socketInstance = connectSocket('http://localhost:8000');
+    const socketInstance = connectSocket('http://localhost:8001');
     setSocket(socketInstance);
     setupBackendStateTracking();
     setupSocketEventHandlers(socketInstance);
