@@ -9,6 +9,6 @@ sttSocket(server);
 
 // Start listening
 const PORT = process.env.PORT || 8001;
-server.listen(PORT, () => {
-  console.log(` STT Socket server running on port ${PORT}`);
+server.listen(8001, '0.0.0.0', () => {
+  console.log('STT server listening on port 8001');
 });
