@@ -3,8 +3,6 @@ import { create } from "zustand"
 export const useInterviewStore = create((set) => ({
   // Current step in the flow
   currentStep: "category", // 'category', 'subcategory', 'level', 'upload', 'interview'
-
-  // Selected options
   selectedCategory: null,
   selectedSubcategory: null,  //
   selectedLevel: null,
