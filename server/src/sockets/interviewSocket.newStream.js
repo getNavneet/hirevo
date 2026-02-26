@@ -1,12 +1,7 @@
-import { createSpeechStream } from "../services/sst/speechHandlerGoogle.js";
-// import { createSpeechStream } from "../services/sst/speechHandlerAssemblyAi.js";
-// import { createSpeechStream } from "../services/sst/speechHandlerAssamblyai.trials.js";
 import {
   initializeInterviewFromDB,
   processResponseAndGenerateNext,
-  addResponseToSession,
 } from "../services/questionGeneration/index.dbintegration.js";
-// import { synthesizeSpeech } from "../services/tts/ttsHandlerOpenai.js";
 import { synthesizeSpeech } from "../services/tts/ttsHandlerGoogle.js";
 
 async function processTranscript(socket, finalText) {
@@ -30,36 +25,42 @@ async function processTranscript(socket, finalText) {
     );
 
     if (result.type === "continue") {
-      // Update the session state on the socket
       socket.workflowSession = result.updatedSession;
 
-      const audioBuffer = await synthesizeSpeech(result.nextQuestion.question);
+      const audioBuffer = await synthesizeSpeech(
+        result.nextQuestion.question
+      );
 
       // Emit the new question to the client
       socket.emit("nextQuestion", {
         question: result.nextQuestion.question,
-        audioData: audioBuffer.toString("base64"), // Convert Buffer to Base64 for transmission
+        audioData: audioBuffer.toString("base64"),
       });
     } else if (result.type === "complete") {
-      // The interview is over, send the completion message
       socket.workflowSession = result.updatedSession;
       socket.emit("interviewComplete", { message: result.message });
     } else {
-      // Handle workflow error
       console.error(`[${socket.id}] Workflow error:`, result.message);
-      socket.emit("error", { message: "Workflow error processing response." });
+      socket.emit("error", {
+        message: "Workflow error processing response.",
+      });
     }
   } catch (err) {
     console.error(`[${socket.id}] Error processing transcript:`, err);
-    socket.emit("error", { message: "Server error processing response." });
+    socket.emit("error", {
+      message: "Server error processing response.",
+    });
   }
 }
 
 export async function InterviewSocket(server) {
-  const { Server } = await import("socket.io"); // dynamic import since top-level used elsewhere
+  const { Server } = await import("socket.io");
+
+  const allowedOrigin = process.env.CORS_ORIGIN || "*";
+
   const io = new Server(server, {
     cors: {
-      origin: "*", // frontend URL
+      origin: allowedOrigin,
       methods: ["GET", "POST"],
       credentials: true,
     },
@@ -68,8 +69,6 @@ export async function InterviewSocket(server) {
   io.on("connection", (socket) => {
     console.log(`[${socket.id}] connected to server`);
 
-    let speechStream = null;
-
     // 🔹 Client sends sessionId to join interview
     socket.on("joinInterview", async ({ sessionId }) => {
       try {
@@ -77,7 +76,6 @@ export async function InterviewSocket(server) {
           `[${socket.id}] 🤝 Attempting to join interview: ${sessionId}`
         );
 
-        // Use the workflow function to initialize the full session context
         const initResult = await initializeInterviewFromDB(sessionId);
 
         if (!initResult.success) {
@@ -85,12 +83,10 @@ export async function InterviewSocket(server) {
           return;
         }
 
-        // Store the full workflow session on the socket object
         socket.workflowSession = initResult.workflowSession;
         console.log(`[${socket.id}] Joined interview: ${sessionId}`);
 
-        // Now, generate the first question immediately after joining
-        // We call processResponseAndGenerateNext with no response to get the first question
+        // Generate the first question
         const result = await processResponseAndGenerateNext(
           socket.workflowSession,
           null,
@@ -98,9 +94,8 @@ export async function InterviewSocket(server) {
         );
 
         if (result.type === "continue") {
-          // Update the session state on the socket and send the question to the client
           socket.workflowSession = result.updatedSession;
-          
+
           const audioBuffer = await synthesizeSpeech(
             result.nextQuestion.question
           );
@@ -108,11 +103,9 @@ export async function InterviewSocket(server) {
           socket.emit("interviewReady", {
             sessionId,
             question: result.nextQuestion.question,
-            audioData: audioBuffer.toString("base64"), // Convert Buffer to Base64
+            audioData: audioBuffer.toString("base64"),
           });
-          //here we can send text(result.nextQuestion.question) to tts service which will stream the audio directly to frontend
         } else {
-          // Handle potential errors from the workflow
           console.error(
             `[${socket.id}] Error generating first question:`,
             result.message
@@ -123,73 +116,11 @@ export async function InterviewSocket(server) {
         }
       } catch (err) {
         console.error("Error joining interview:", err);
-        socket.emit("error", { message: "Server error while joining" });
+        socket.emit("error", {
+          message: "Server error while joining",
+        });
       }
     });
-
-    // 🔹 Start speech recognition with callbacks
-   socket.on("startSpeechRecognition", () => {
-  try {
-    console.log(`[${socket.id}] 🎙️ Starting speech recognition`);
-
-    // Clean up previous stream if it exists
-    if (speechStream) {
-      speechStream.endStream();
-      speechStream = null;
-    }
-
-    // Create a new stream, calling function that returns startStream, stopStream, isActive
-    speechStream = createSpeechStream({
-      onPartialTranscript: (partialText) => {
-        socket.emit("partial-transcription", { text: partialText });
-      },
-      onFinalTranscript: async (finalText) => {
-        socket.emit("transcription", { text: finalText });
-      },
-      onError: (error, message) => {
-        console.error(`[${socket.id}] Speech error:`, error);
-        socket.emit("transcription-error", message);
-      },
-      onStreamStart: () => {
-        socket.emit("speechRecognitionStarted");
-      },
-      onStreamEnd: async (completeTranscript) => {
-        socket.emit("transcriptionComplete", { text: completeTranscript });
-      },
-    });
-
-    const started = speechStream.startStream();
-    if (!started) {
-      socket.emit("transcription-error", "Failed to start speech recognition");
-    }
-  } catch (err) {
-    console.error(`[${socket.id}] Error starting speech recognition:`, err);
-    socket.emit("transcription-error", "Failed to start speech recognition");
-  }
-});
-
-    // 🔹 Receive audio chunks
-    socket.on("audioChunk", (audioData) => {
-      if (speechStream && speechStream.isActive()) {
-        const chunk = Buffer.from(audioData);
-        speechStream.writeAudio(chunk);
-      } else {
-        console.warn(
-          `[${socket.id}] Received audio chunk but no active stream`
-        );
-      }
-    });
-
-//     socket.on("audioChunk", (audioData) => {
-
-//   if (speechStream && speechStream.isActive()) {
-//     const chunk = Buffer.from(new Uint8Array(audioData)); // convert arrayBuffer to Buffer
-//     speechStream.writeAudio(chunk);
-//   } else {
-//     console.warn(`[${socket.id}] Received audio chunk but no active stream`);
-//   }
-// });
-
 
     // 🔹 Receive the final, complete response from the client
     socket.on("completeResponse", async (data) => {
@@ -197,28 +128,10 @@ export async function InterviewSocket(server) {
       await processTranscript(socket, data.finalText);
     });
 
-    // 🔹 Stop speech recognition
-    socket.on("stopSpeechRecognition", () => {
-      console.log(`[${socket.id}]  Stopping speech recognition`);
-
-      if (speechStream) {
-        speechStream.endStream();
-        speechStream = null;
-      }
-
-      socket.emit("speechRecognitionStopped");
-    });
-
     // 🔹 Cleanup on disconnect
     socket.on("disconnect", () => {
       console.log(`[${socket.id}] disconnected`);
 
-      if (speechStream) {
-        speechStream.endStream();
-        speechStream = null;
-      }
-
-      // Clean up the session context from the socket
       if (socket.workflowSession) {
         socket.workflowSession = null;
       }

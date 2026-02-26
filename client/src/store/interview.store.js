@@ -1,16 +1,12 @@
 import { create } from "zustand"
 
 export const useInterviewStore = create((set) => ({
-  // Current step in the flow
   currentStep: "category", // 'category', 'subcategory', 'level', 'upload', 'interview'
   selectedCategory: null,
   selectedSubcategory: null,  //
   selectedLevel: null,
   uploadedResume: null,
   isInterviewActive: false,
-  // currentQuestion: 0,
-  // totalQuestions: 5,
-  // timeRemaining: 1800, // 30 minutes in seconds
   isRecording: false,
   sessionID: null,
   // Actions
@@ -24,26 +20,10 @@ export const useInterviewStore = create((set) => ({
     set({
       currentStep: "interview",
       isInterviewActive: true,
-      // currentQuestion: 0,
-      // timeRemaining: 1800,
+
     }),
 
-  // nextQuestion: () =>
-  //   set((state) => ({
-  //     currentQuestion: Math.min(state.currentQuestion + 1, state.totalQuestions - 1),
-  //   })),
-
-  // prevQuestion: () =>
-  //   set((state) => ({
-  //     currentQuestion: Math.max(state.currentQuestion - 1, 0),
-  //   })),
-
   toggleRecording: () => set((state) => ({ isRecording: !state.isRecording })),
-
-  // updateTimer: () =>
-  //   set((state) => ({
-  //     timeRemaining: Math.max(state.timeRemaining - 1, 0),
-  //   })),
 
   reset: () =>
     set({
