@@ -1,55 +1,39 @@
 import {
-  initializeInterviewFromDB,
-  processResponseAndGenerateNext,
-} from "../services/questionGeneration/index.dbintegration.js";
+  runInterviewStartGraph,
+  runInterviewTurnGraph,
+} from "../services/questionGeneration/interviewGraph.runtime.js";
 // import { synthesizeSpeech } from "../services/tts/ttsHandlerOpenai.js";
 import { synthesizeSpeech } from "../services/tts/ttsHandlerGoogle.js";
 
 async function processTranscript(socket, finalText) {
-  // Get the last question ID from the current session history
-  const lastQuestionId =
-    socket.workflowSession?.conversationHistory?.slice(-1)[0]?.questionId;
-
-  if (!socket.workflowSession || !lastQuestionId) {
-    console.warn(
-      `[${socket.id}] Skipping transcript processing: no active session or last question ID.`
-    );
-    return;
-  }
-
   try {
-    // Process the user's response and get the next question
-    const result = await processResponseAndGenerateNext(
-      socket.workflowSession,
-      lastQuestionId,
-      finalText
-    );
+    const result = await runInterviewTurnGraph(socket.workflowSession, finalText);
 
-    if (result.type === "continue") {
-      // Update the session state on the socket
+    if (!result.ok) {
+      console.error(`[${socket.id}] Workflow error:`, result.error);
+      socket.emit("error", { message: result.error });
+      return;
+    }
+
+    if (result.status === "continue") {
       socket.workflowSession = result.updatedSession;
-
       const audioBuffer = await synthesizeSpeech(result.nextQuestion.question);
 
-      // Emit the new question to the client
       socket.emit("nextQuestion", {
         question: result.nextQuestion.question,
-        audioData: audioBuffer.toString("base64"), // Convert Buffer to Base64 for transmission
+        audioData: audioBuffer.toString("base64"),
       });
-    } else if (result.type === "complete") {
-      // The interview is over, send the completion message
-      socket.workflowSession = result.updatedSession;
-      socket.emit("interviewComplete", { message: result.message });
-    } else {
-      // Handle workflow error
-      console.error(`[${socket.id}] Workflow error:`, result.message);
-      socket.emit("error", { message: "Workflow error processing response." });
+      return;
     }
+
+    socket.workflowSession = result.updatedSession;
+    socket.emit("interviewComplete", { message: result.message });
   } catch (err) {
     console.error(`[${socket.id}] Error processing transcript:`, err);
     socket.emit("error", { message: "Server error processing response." });
   }
 }
+
 
 export async function InterviewSocket(server) {
   const { Server } = await import("socket.io"); // dynamic import since top-level used elsewhere
@@ -74,49 +58,26 @@ export async function InterviewSocket(server) {
           `[${socket.id}] 🤝 Attempting to join interview: ${sessionId}`
         );
 
-        // Use the workflow function to initialize the full session context
-        const initResult = await initializeInterviewFromDB(sessionId);
+        const result = await runInterviewStartGraph(sessionId);
 
-        if (!initResult.success) {
-          socket.emit("error", { message: "Invalid sessionId" });
+        if (!result.ok) {
+          socket.emit("error", { message: result.error || "Invalid sessionId" });
           return;
         }
 
-        // Store the full workflow session on the socket object
-        socket.workflowSession = initResult.workflowSession;
+        socket.workflowSession = result.updatedSession;
         console.log(`[${socket.id}] Joined interview: ${sessionId}`);
 
-        // Now, generate the first question immediately after joining
-        // We call processResponseAndGenerateNext with no response to get the first question
-        const result = await processResponseAndGenerateNext(
-          socket.workflowSession,
-          null,
-          null
-        );
-
-        if (result.type === "continue") {
-          // Update the session state on the socket and send the question to the client
-          socket.workflowSession = result.updatedSession;
-          
-          const audioBuffer = await synthesizeSpeech(
-            result.nextQuestion.question
-          );
+        if (result.status === "continue") {
+          const audioBuffer = await synthesizeSpeech(result.nextQuestion.question);
 
           socket.emit("interviewReady", {
             sessionId,
             question: result.nextQuestion.question,
-            audioData: audioBuffer.toString("base64"), // Convert Buffer to Base64
+            audioData: audioBuffer.toString("base64"),
           });
-          //here we can send text(result.nextQuestion.question) to tts service which will stream the audio directly to frontend
         } else {
-          // Handle potential errors from the workflow
-          console.error(
-            `[${socket.id}] Error generating first question:`,
-            result.message
-          );
-          socket.emit("error", {
-            message: "Failed to start interview. Please try again.",
-          });
+          socket.emit("interviewComplete", { message: result.message });
         }
       } catch (err) {
         console.error("Error joining interview:", err);
