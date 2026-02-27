@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import io from 'socket.io-client';
 
-const INTERVIEW_SERVER_URL = 'http://localhost:8001'; // Your interview server
+const INTERVIEW_SERVER_URL = import.meta.env.VITE_INTERVIEW_SERVER_URL || 'http://localhost:8080';
 
 export const useInterviewSocket = () => {
   const socketRef = useRef(null);

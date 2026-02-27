@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import io from 'socket.io-client';
 
-const STT_SERVER_URL = 'http://localhost:8001';
+const STT_SERVER_URL = import.meta.env.VITE_STT_SERVER_URL || 'http://localhost:8001';
 
 export const useSTTSocket = () => {
   const socketRef = useRef(null);

@@ -3,9 +3,11 @@ import { createSpeechStream } from "./speechHandler.google.js";
 
 export async function sttSocket(server) {
   const { Server } = await import("socket.io"); // dynamic import since top-level used elsewhere
+  const allowedOrigin = process.env.CORS_ORIGIN || "*";
+
   const io = new Server(server, {
     cors: {
-      origin: "*", // frontend URL
+      origin: allowedOrigin,
       methods: ["GET", "POST"],
       credentials: true,
     },
@@ -15,6 +17,14 @@ export async function sttSocket(server) {
     console.log(`[${socket.id}] connected to stt server`);
 
     let speechStream = null;
+
+    const resetRecognitionState = () => {
+      socket.recognitionActive = false;
+      if (speechStream) {
+        speechStream.endStream();
+        speechStream = null;
+      }
+    };
 
     // 🔹 Start speech recognition with callbacks
     socket.on("startSpeechRecognition", () => {
@@ -45,18 +55,21 @@ export async function sttSocket(server) {
           },
           onError: (error, message) => {
             console.error(`[${socket.id}] Speech error:`, error);
+            socket.recognitionActive = false;
             socket.emit("transcription-error", message);
           },
           onStreamStart: () => {
             socket.emit("speechRecognitionStarted");
           },
           onStreamEnd: async (completeTranscript) => {
+            socket.recognitionActive = false;
             socket.emit("transcriptionComplete", { text: completeTranscript });
           },
         });
 
         const started = speechStream.startStream();
         if (!started) {
+          resetRecognitionState();
           socket.emit(
             "transcription-error",
             "Failed to start speech recognition"
@@ -64,6 +77,7 @@ export async function sttSocket(server) {
         }
       } catch (err) {
         console.error(`[${socket.id}] Error starting speech recognition:`, err);
+        resetRecognitionState();
         socket.emit(
           "transcription-error",
           "Failed to start speech recognition"
@@ -83,34 +97,18 @@ export async function sttSocket(server) {
       }
     });
 
-    // 🔹 Receive the final, from here we can call our another backend
-    socket.on("completeResponse", async (data) => {
-      console.log(`[${socket.id}] 👆 User sent complete response`);
-      await processTranscript(socket, data.finalText);
-    });
-
     // 🔹 Stop speech recognition
     socket.on("stopSpeechRecognition", () => {
       console.log(`[${socket.id}]  Stopping speech recognition`);
 
-      if (speechStream) {
-        speechStream.endStream();
-        speechStream = null;
-      }
-
+      resetRecognitionState();
       socket.emit("speechRecognitionStopped");
     });
 
     // 🔹 Cleanup on disconnect
     socket.on("disconnect", () => {
-      socket.recognitionActive = false;
-
       console.log(`[${socket.id}] disconnected`);
-
-      if (speechStream) {
-        speechStream.endStream();
-        speechStream = null;
-      }
+      resetRecognitionState();
 
       // Clean up the session context from the socket
       if (socket.workflowSession) {
