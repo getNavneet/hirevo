@@ -3,9 +3,11 @@ import { createSpeechStream } from "./speechHandler.google.js";
 
 export async function sttSocket(server) {
   const { Server } = await import("socket.io"); // dynamic import since top-level used elsewhere
+  const allowedOrigin = process.env.CORS_ORIGIN || "*";
+
   const io = new Server(server, {
     cors: {
-      origin: "*", // frontend URL
+      origin: allowedOrigin,
       methods: ["GET", "POST"],
       credentials: true,
     },
@@ -81,12 +83,6 @@ export async function sttSocket(server) {
           `[${socket.id}] Received audio chunk but no active stream`
         );
       }
-    });
-
-    // 🔹 Receive the final, from here we can call our another backend
-    socket.on("completeResponse", async (data) => {
-      console.log(`[${socket.id}] 👆 User sent complete response`);
-      await processTranscript(socket, data.finalText);
     });
 
     // 🔹 Stop speech recognition

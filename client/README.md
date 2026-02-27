@@ -10,3 +10,17 @@ Currently, two official plugins are available:
 ## Expanding the ESLint configuration
 
 If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+
+## Environment variables
+
+For multi-service deployments, configure socket endpoints with Vite env vars:
+
+- `VITE_INTERVIEW_SERVER_URL` (default: `http://localhost:8080`)
+- `VITE_STT_SERVER_URL` (default: `http://localhost:8001`)
+
+Example:
+
+```bash
+VITE_INTERVIEW_SERVER_URL=http://localhost:8080
+VITE_STT_SERVER_URL=http://localhost:8001
+```
