@@ -1,10 +1,6 @@
-import { createSpeechStream } from "../services/sst/speechHandlerGoogle.js";
-// import { createSpeechStream } from "../services/sst/speechHandlerAssemblyAi.js";
-// import { createSpeechStream } from "../services/sst/speechHandlerAssamblyai.trials.js";
 import {
   initializeInterviewFromDB,
   processResponseAndGenerateNext,
-  addResponseToSession,
 } from "../services/questionGeneration/index.dbintegration.js";
 // import { synthesizeSpeech } from "../services/tts/ttsHandlerOpenai.js";
 import { synthesizeSpeech } from "../services/tts/ttsHandlerGoogle.js";
@@ -57,9 +53,11 @@ async function processTranscript(socket, finalText) {
 
 export async function InterviewSocket(server) {
   const { Server } = await import("socket.io"); // dynamic import since top-level used elsewhere
+  const allowedOrigin = process.env.CORS_ORIGIN || "*";
+
   const io = new Server(server, {
     cors: {
-      origin: "*", // frontend URL
+      origin: allowedOrigin,
       methods: ["GET", "POST"],
       credentials: true,
     },
@@ -68,7 +66,6 @@ export async function InterviewSocket(server) {
   io.on("connection", (socket) => {
     console.log(`[${socket.id}] connected to server`);
 
-    let speechStream = null;
 
     // 🔹 Client sends sessionId to join interview
     socket.on("joinInterview", async ({ sessionId }) => {
@@ -127,96 +124,15 @@ export async function InterviewSocket(server) {
       }
     });
 
-    // 🔹 Start speech recognition with callbacks
-   socket.on("startSpeechRecognition", () => {
-  try {
-    console.log(`[${socket.id}] 🎙️ Starting speech recognition`);
-
-    // Clean up previous stream if it exists
-    if (speechStream) {
-      speechStream.endStream();
-      speechStream = null;
-    }
-
-    // Create a new stream, calling function that returns startStream, stopStream, isActive
-    speechStream = createSpeechStream({
-      onPartialTranscript: (partialText) => {
-        socket.emit("partial-transcription", { text: partialText });
-      },
-      onFinalTranscript: async (finalText) => {
-        socket.emit("transcription", { text: finalText });
-      },
-      onError: (error, message) => {
-        console.error(`[${socket.id}] Speech error:`, error);
-        socket.emit("transcription-error", message);
-      },
-      onStreamStart: () => {
-        socket.emit("speechRecognitionStarted");
-      },
-      onStreamEnd: async (completeTranscript) => {
-        socket.emit("transcriptionComplete", { text: completeTranscript });
-      },
-    });
-
-    const started = speechStream.startStream();
-    if (!started) {
-      socket.emit("transcription-error", "Failed to start speech recognition");
-    }
-  } catch (err) {
-    console.error(`[${socket.id}] Error starting speech recognition:`, err);
-    socket.emit("transcription-error", "Failed to start speech recognition");
-  }
-});
-
-    // 🔹 Receive audio chunks
-    socket.on("audioChunk", (audioData) => {
-      if (speechStream && speechStream.isActive()) {
-        const chunk = Buffer.from(audioData);
-        speechStream.writeAudio(chunk);
-      } else {
-        console.warn(
-          `[${socket.id}] Received audio chunk but no active stream`
-        );
-      }
-    });
-
-//     socket.on("audioChunk", (audioData) => {
-
-//   if (speechStream && speechStream.isActive()) {
-//     const chunk = Buffer.from(new Uint8Array(audioData)); // convert arrayBuffer to Buffer
-//     speechStream.writeAudio(chunk);
-//   } else {
-//     console.warn(`[${socket.id}] Received audio chunk but no active stream`);
-//   }
-// });
-
-
     // 🔹 Receive the final, complete response from the client
     socket.on("completeResponse", async (data) => {
       console.log(`[${socket.id}] 👆 User sent complete response`);
       await processTranscript(socket, data.finalText);
     });
 
-    // 🔹 Stop speech recognition
-    socket.on("stopSpeechRecognition", () => {
-      console.log(`[${socket.id}]  Stopping speech recognition`);
-
-      if (speechStream) {
-        speechStream.endStream();
-        speechStream = null;
-      }
-
-      socket.emit("speechRecognitionStopped");
-    });
-
     // 🔹 Cleanup on disconnect
     socket.on("disconnect", () => {
       console.log(`[${socket.id}] disconnected`);
-
-      if (speechStream) {
-        speechStream.endStream();
-        speechStream = null;
-      }
 
       // Clean up the session context from the socket
       if (socket.workflowSession) {

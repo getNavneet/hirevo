@@ -1,4 +1,4 @@
-import InterviewRoom from "../components/interviewRoom2/index.autoStart";
+import InterviewRoom from "../components/interviewRoom2/index";
 // import InterviewRoom from "../components/InterviewRoom.jsx";
 // import InterviewRoom from "../components/InterviewRoom";
 import { useInterviewStore } from "../store/interview.store";
